@@ -51,7 +51,7 @@ __C.CONST.BATCH_SIZE                        = 64        # default is 64.
 __C.CONST.N_VIEWS_RENDERING                 = 1         # Dummy property for Pascal 3D
 __C.CONST.CROP_IMG_W                        = 128       # Dummy property for Pascal 3D
 __C.CONST.CROP_IMG_H                        = 128       # Dummy property for Pascal 3D
-__C.CONST.NUM_WORKER                        = 2         # number of data workers -- suggested max is 2, but already initialized 4 as default.
+__C.CONST.NUM_WORKER                        = 4         # number of data workers -- suggested max is 2, but already initialized 4 as default.
 
 #
 # Directories
