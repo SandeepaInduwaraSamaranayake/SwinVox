@@ -4,58 +4,67 @@ import torch.nn.functional as F
 
 
 class CrossViewAttention(nn.Module):
-    def __init__(self, in_channels):
+    def __init__(self, in_channels, reduction_ratio=128):
         super(CrossViewAttention, self).__init__()
-        # Reduces the number of channels to in_channels // 8
-        self.query_conv = nn.Conv2d(in_channels, in_channels // 256, kernel_size=1)
-        # Reduces the number of channels to in_channels // 8
-        self.key_conv = nn.Conv2d(in_channels, in_channels // 256, kernel_size=1)
-        # Keeps the number of channels the same as the input
-        self.value_conv = nn.Conv2d(in_channels, in_channels, kernel_size=1)
+        self.reduction_ratio = reduction_ratio
+        self.in_channels = in_channels
+        self.reduced_channels = in_channels // reduction_ratio
+
+        # Combine query, key, and value convolutions into a single layer
+        self.qkv_conv = nn.Conv2d(in_channels, self.reduced_channels * 2 + in_channels, kernel_size=1)
+        self.softmax = nn.Softmax(dim=-1)
+
+        # Optional: Add layer normalization and dropout for stability
+        self.layer_norm = nn.LayerNorm(in_channels)
+        self.dropout = nn.Dropout(0.1)
 
     def forward(self, x):
-        # x shape [batch_size, n_views, channels, height, width]
-        # torch.Size([64, 1, 1792, 14, 14])
+        # x shape: [batch_size, n_views, channels, height, width]
         batch_size, n_views, channels, height, width = x.size()
-        print(f"batch size: {batch_size}  , n_views : {n_views} , channels : {channels} , height : {height} , width : {width}")
-        
-        # Reshape for attention computation
-        # [64, 1792, 14, 14]
-        x = x.view(batch_size * n_views, channels, height, width)
-        # print(f"Reshaped attention computation : {x}")
 
-        # Compute query, key, and value
-        # reduces the number of channels from 1792 to 1792 // 256 = 7
-        # [64, 1, 7 * 14 * 14] = [64, 1, 980]
-        query = self.query_conv(x).view(batch_size, n_views, -1)
-        # [64, 1, 980]
-        key = self.key_conv(x).view(batch_size, n_views, -1)
-        # [64, 1, 1792, 14, 14]
-        value = self.value_conv(x).view(batch_size, n_views, channels, height, width)
+        # Reshape for efficient computation
+        x = x.view(batch_size * n_views, channels, height, width)  # [batch_size * n_views, channels, height, width]
 
-        # Print shapes for debugging
-        print(f"Query shape: {query.shape}")
-        print(f"Key shape: {key.shape}")
-        print(f"Value shape: {value.shape}")
+        # Compute query, key, and value in one forward pass
+        qkv = self.qkv_conv(x)  # [batch_size * n_views, reduced_channels * 2 + channels, height, width]
+        q, k, v = torch.split(qkv, [self.reduced_channels, self.reduced_channels, self.in_channels], dim=1)
 
-        # Compute attention scores using einsum for efficiency
-        # [64, 1, 1]
-        attention_scores = F.softmax(torch.einsum('bik,bjk->bij', query, key), dim=-1)
+        # Reshape query and key for attention computation
+        q = q.view(batch_size, n_views, -1)  # [batch_size, n_views, reduced_channels * height * width]
+        k = k.view(batch_size, n_views, -1)  # [batch_size, n_views, reduced_channels * height * width]
+        v = v.view(batch_size, n_views, self.in_channels, height, width)  # [batch_size, n_views, channels, height, width]
 
-        # Print attention scores shape
-        print(f"Attention scores shape: {attention_scores.shape}")
-
-        # Reshape value for bmm
-        # [64, 1, 1792 * 14 * 14] = [64, 1, 351232]
-        value_reshaped = value.view(batch_size, n_views, -1)  # Shape: [batch_size, n_views, channels * height * width]
-
-        print(f"value_reshaped shape: {value_reshaped.shape}")
+        # Compute attention scores using batch matrix multiplication
+        attention_scores = torch.matmul(q, k.transpose(-1, -2))  # [batch_size, n_views, n_views]
+        attention_scores = self.softmax(attention_scores / (self.reduced_channels ** 0.5))  # Scaled dot-product attention
 
         # Apply attention to values
-        # [64, 1, 351232]
-        attended_values = torch.bmm(attention_scores, value_reshaped)  # Shape: [batch_size, features, channels * height * width]
-        
-        # [64, 1, 1792, 14, 14]
-        attended_values = attended_values.view(batch_size, n_views, channels, height, width)  # Reshape back to original dimensions
+        v = v.view(batch_size, n_views, -1)  # [batch_size, n_views, channels * height * width]
+        attended_values = torch.matmul(attention_scores, v)  # [batch_size, n_views, channels * height * width]
+
+        # Reshape back to original dimensions
+        attended_values = attended_values.view(batch_size, n_views, self.in_channels, height, width)
+
+        # Reshape for layer normalization
+        attended_values = attended_values.permute(0, 1, 3, 4, 2)  # [batch_size, n_views, height, width, channels]
+        attended_values = attended_values.reshape(-1, self.in_channels)  # [batch_size * n_views * height * width, channels]
+
+        # Apply layer normalization
+        attended_values = self.layer_norm(attended_values)  # [batch_size * n_views * height * width, channels]
+
+        # Reshape back to original shape
+        attended_values = attended_values.view(batch_size, n_views, height, width, self.in_channels)
+        attended_values = attended_values.permute(0, 1, 4, 2, 3)  # [batch_size, n_views, channels, height, width]
+
+        # Optional: Add dropout
+        attended_values = self.dropout(attended_values)
 
         return attended_values
+
+
+
+
+
+
+
+

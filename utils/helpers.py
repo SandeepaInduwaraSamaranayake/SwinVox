@@ -14,23 +14,7 @@ from mpl_toolkits.mplot3d import Axes3D
 def var_or_cuda(x):
     if torch.cuda.is_available():
         x = x.cuda(non_blocking=True)
-
     return x
-
-
-# def init_weights(m):
-#     print(f"Initializing layer: {type(m)}, Bias: {m.bias}, Weight: {m.weight}")
-#     if type(m) == torch.nn.Conv2d or type(m) == torch.nn.Conv3d or \
-#        type(m) == torch.nn.ConvTranspose2d or type(m) == torch.nn.ConvTranspose3d:
-#         torch.nn.init.kaiming_normal_(m.weight)
-#         if m.bias is not None:
-#             torch.nn.init.constant_(m.bias, 0)
-#     elif type(m) == torch.nn.BatchNorm2d or type(m) == torch.nn.BatchNorm3d:
-#         torch.nn.init.constant_(m.weight, 1)
-#         torch.nn.init.constant_(m.bias, 0)
-#     elif type(m) == torch.nn.Linear:
-#         torch.nn.init.normal_(m.weight, 0, 0.01)
-#         torch.nn.init.constant_(m.bias, 0)
 
 def init_weights(m):
     # Check if the module is of type Conv2d, Conv3d, ConvTranspose2d, or ConvTranspose3d
@@ -76,8 +60,11 @@ def get_volume_views(volume, save_dir, prefix, sample_idx, epoch_idx):
     ax.voxels(volume, edgecolor="k")
     # Convert the figure canvas to an image
     fig.canvas.draw()
-    img = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-    img = img.reshape(fig.canvas.get_width_height()[::-1] + (3, ))
+    img = np.frombuffer(fig.canvas.tostring_argb(), dtype=np.uint8)
+    img = img.reshape(fig.canvas.get_width_height()[::-1] + (4, ))
+
+    # Convert from ARGB to RGB
+    img = img[:, :, 1:4]  # Keep only the RGB channels
 
     # Transpose the image to be in [C, H, W] format, which is expected by TensorBoard. This ensures that the returned image is in [C, H, W] format, where C is the number of channels (e.g., 3 for RGB), and H and W are the height and width, respectively. This is the format expected by TensorBoard's add_image method.
     img = np.transpose(img, (2, 0, 1))  # Convert from (H, W, C) to (C, H, W)
