@@ -70,7 +70,7 @@ class Encoder(nn.Module):
             # Swin Transformer Features
             swin_features = self.swin_transformer(img)  # [batch_size, 768, 7, 7]
             swin_features = self.swin_reduce(swin_features)  # [batch_size, 512, 7, 7]
-            swin_features = F.interpolate(swin_features, size=resnet_features.shape[2:], mode='bilinear', align_corners=False)  # [batch_size, 512, 14, 14]
+            swin_features = F.interpolate(swin_features, size=resnet_features.shape[2:], mode='bilinear', align_corners=True)  # [batch_size, 512, 14, 14]
 
             # Concatenate Features
             fused_features = torch.cat((resnet_features, swin_features), dim=1)  # [batch_size, 1024, 14, 14]

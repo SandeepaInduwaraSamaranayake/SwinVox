@@ -145,11 +145,11 @@ def test_net(cfg,
             if output_dir and test_writer and sample_idx < 3:
                 img_dir = output_dir % 'images'
                 # Volume Visualization
-                gv = utils.helpers.get_volume_views(generated_volume.cpu().numpy(), os.path.join(img_dir, 'test'), 'GV', sample_idx, epoch_idx)
-                test_writer.add_image('Model%02d/Reconstructed' % sample_idx, gv, epoch_idx)
+                rendering_views = utils.helpers.get_volume_views(generated_volume.cpu().numpy(), os.path.join(img_dir, 'test'), 'GV', sample_idx, epoch_idx)
+                test_writer.add_image('Model%02d/Reconstructed' % sample_idx, rendering_views, epoch_idx)
 
-                gt = utils.helpers.get_volume_views(ground_truth_volume.cpu().numpy(), os.path.join(img_dir, 'test'), 'GT', sample_idx, epoch_idx)
-                test_writer.add_image('Model%02d/GroundTruth' % sample_idx, gt, epoch_idx)
+                rendering_views = utils.helpers.get_volume_views(ground_truth_volume.cpu().numpy(), os.path.join(img_dir, 'test'), 'GT', sample_idx, epoch_idx)
+                test_writer.add_image('Model%02d/GroundTruth' % sample_idx, rendering_views, epoch_idx)
 
             # Print sample loss and IoU
             logging.info('Test[%d/%d] Taxonomy = %s Sample = %s EDLoss = %.4f RLoss = %.4f IoU = %s' %
