@@ -52,6 +52,7 @@ __C.CONST.N_VIEWS_RENDERING                 = 1         # Dummy property for Pas
 __C.CONST.CROP_IMG_W                        = 128       # Dummy property for Pascal 3D
 __C.CONST.CROP_IMG_H                        = 128       # Dummy property for Pascal 3D
 __C.CONST.NUM_WORKER                        = 2         # number of data workers -- suggested max is 2, but already initialized 4 as default.
+__C.CONST.CROSS_ATTENTION_REDUCTION_RATIO   = 128
 
 #
 # Directories
@@ -68,6 +69,7 @@ __C.NETWORK.LEAKY_VALUE                     = .2
 __C.NETWORK.TCONV_USE_BIAS                  = False
 __C.NETWORK.USE_REFINER                     = True
 __C.NETWORK.USE_MERGER                      = True
+__C.NETWORK.USE_CROSS_VIEW_ATTENTION        = True
 
 #
 # Training

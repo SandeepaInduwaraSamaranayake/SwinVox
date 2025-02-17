@@ -4,9 +4,10 @@ import torch.nn.functional as F
 
 
 class CrossViewAttention(nn.Module):
-    def __init__(self, in_channels, reduction_ratio=128):
+    def __init__(self, cfg, in_channels, reduction_ratio=128):
         super(CrossViewAttention, self).__init__()
-        self.reduction_ratio = reduction_ratio
+        self.cfg = cfg
+        self.reduction_ratio = cfg.CONST.CROSS_ATTENTION_REDUCTION_RATIO
         self.in_channels = in_channels
         self.reduced_channels = in_channels // reduction_ratio
 

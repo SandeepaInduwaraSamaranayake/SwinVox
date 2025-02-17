@@ -27,7 +27,10 @@ class Encoder(nn.Module):
         self.swin_reduce = nn.Conv2d(768, 512, kernel_size=1)     # Reduce Swin channels
 
         # Cross-View Attention Layer
-        self.cross_view_attention = CrossViewAttention(in_channels=1024)  # 512 + 512
+        if self.cfg.NETWORK.USE_CROSS_VIEW_ATTENTION:
+          self.cross_view_attention = CrossViewAttention(cfg, in_channels=1024)  # 512 + 512
+        else:
+            self.cross_view_attention = None
 
         # Fusion Layer
         self.fusion_layer = nn.Sequential(
@@ -80,7 +83,11 @@ class Encoder(nn.Module):
         image_features = torch.stack(image_features).permute(1, 0, 2, 3, 4).contiguous()  # [batch_size, n_views, 1024, 14, 14]
 
         # Apply Cross-View Attention
-        attended_features = self.cross_view_attention(image_features)  # [batch_size, n_views, 1024, 14, 14]
+        if self.cfg.NETWORK.USE_CROSS_VIEW_ATTENTION:
+          attended_features = self.cross_view_attention(image_features)  # [batch_size, n_views, 1024, 14, 14]
+        else:
+          attended_features = image_features
+
         batch_size, n_views, channels, height, width = attended_features.shape
         attended_features = attended_features.view(batch_size * n_views, channels, height, width)  # [batch_size * n_views, 1024, 14, 14]
 
