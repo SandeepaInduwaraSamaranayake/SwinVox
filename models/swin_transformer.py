@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+#
+# Developed by Sandeepa Samaranayake <sandeepasamaranayake@outlook.com>
+
 import torch
 import torch.nn as nn
 import timm

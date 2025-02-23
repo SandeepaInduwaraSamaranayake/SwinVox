@@ -58,7 +58,7 @@ def get_volume_views(volume, save_dir, prefix, sample_idx, epoch_idx):
     # Set the aspect ratio to be equal
     ax.set_box_aspect([1, 1, 1])
     # Plot the voxels with black edges
-    ax.voxels(volume, edgecolor="k", linewidth=0.2)
+    ax.voxels(volume, edgecolor="k", linewidth=0.5)
     ax.view_init(elev=30, azim=45)                   # Adjusted view angles
     # Matplotlib's ax.voxels() behavior might auto-scale axes differently in 3.10.0 vs 3.9.0, leading to inconsistent views.
     ax.set_xlim(0, volume.shape[0])                  # Manual axis limits
