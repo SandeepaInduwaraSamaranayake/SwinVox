@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Developed by Haozhe Xie <cshzxie@gmail.com>
+# Modified  by Sandeepa Samaranayake <sandeepasamaranayake@outlook.com>
 
 from easydict import EasyDict as edict
 
@@ -47,12 +48,12 @@ __C.CONST.DEVICE                            = '0'
 __C.CONST.RNG_SEED                          = 0
 __C.CONST.IMG_W                             = 224       # Image width for input
 __C.CONST.IMG_H                             = 224       # Image height for input
-__C.CONST.BATCH_SIZE                        = 48        # default is 64. 
+__C.CONST.BATCH_SIZE                        = 64        # default is 64. 
 __C.CONST.N_VIEWS_RENDERING                 = 1         # Dummy property for Pascal 3D
 __C.CONST.CROP_IMG_W                        = 128       # Dummy property for Pascal 3D
 __C.CONST.CROP_IMG_H                        = 128       # Dummy property for Pascal 3D
 __C.CONST.NUM_WORKER                        = 4         # number of data workers -- suggested max is 2, but already initialized 4 as default.
-__C.CONST.CROSS_ATTENTION_REDUCTION_RATIO   = 8
+__C.CONST.CROSS_ATTENTION_REDUCTION_RATIO   = 4
 
 #
 # Directories
@@ -71,7 +72,7 @@ __C.NETWORK.USE_REFINER                     = True
 __C.NETWORK.USE_MERGER                      = True
 __C.NETWORK.USE_CROSS_VIEW_ATTENTION        = True
 __C.NETWORK.DECODER_DROPOUT                 = .1
-__C.NETWORK.ATTENTION_REDUCTION             = 8
+__C.NETWORK.ATTENTION_REDUCTION             = 4
 
 
 
