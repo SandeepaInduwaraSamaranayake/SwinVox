@@ -53,6 +53,7 @@ __C.CONST.N_VIEWS_RENDERING                 = 1         # Dummy property for Pas
 __C.CONST.CROP_IMG_W                        = 128       # Dummy property for Pascal 3D
 __C.CONST.CROP_IMG_H                        = 128       # Dummy property for Pascal 3D
 __C.CONST.NUM_WORKER                        = 4         # number of data workers -- suggested max is 2, but already initialized 4 as default.
+#__C.CONST.WEIGHTS                           = 'path'   # if training is resuming, uncomment this replace 'path' with weight path.
 __C.CONST.CROSS_ATTENTION_REDUCTION_RATIO   = 4
 
 #
@@ -81,7 +82,7 @@ __C.NETWORK.ATTENTION_REDUCTION             = 4
 #
 __C.TRAIN                                   = edict()
 __C.TRAIN.RESUME_TRAIN                      = False
-__C.TRAIN.NUM_EPOCHS                        = 250           # default 250
+__C.TRAIN.NUM_EPOCHS                        = 100           # default 250
 __C.TRAIN.BRIGHTNESS                        = .4
 __C.TRAIN.CONTRAST                          = .4
 __C.TRAIN.SATURATION                        = .4
