@@ -84,7 +84,7 @@ def main():
 if __name__ == '__main__':
     # Check python version
     if sys.version_info < (3, 0):
-        raise Exception("Please follow the installation instruction on 'https://github.com/hzxie/Pix2Vox'")
+        raise Exception("Please follow the installation instruction on 'https://github.com/SandeepaInduwaraSamaranayake/SwinVox'")
 
     # Setup logger
     # mp.log_to_stderr()

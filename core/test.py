@@ -33,6 +33,17 @@ def test_net(cfg,
     # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use
     torch.backends.cudnn.benchmark = True
 
+    # Set device based on availability: CUDA > MPS > CPU
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        logging.info('Using CUDA (GPU) for computation.')
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+        logging.info('Using MPS (Apple Silicon GPU) for computation.')
+    else:
+        device = torch.device("cpu")
+        logging.info('CUDA and MPS not available. Falling back to CPU.')
+
     # Load taxonomies of dataset
     taxonomies = []
     with open(cfg.DATASETS[cfg.DATASET.TEST_DATASET.upper()].TAXONOMY_FILE_PATH, encoding='utf-8') as file:
@@ -66,7 +77,14 @@ def test_net(cfg,
         refiner = Refiner(cfg)
         merger = Merger(cfg)
 
-        if torch.cuda.is_available():
+        # Move models to the appropriate device
+        encoder = encoder.to(device)
+        decoder = decoder.to(device)
+        refiner = refiner.to(device)
+        merger = merger.to(device)
+
+        # Use DataParallel only for CUDA (multi-GPU support)
+        if device.type == 'cuda':
             encoder = torch.nn.DataParallel(encoder).cuda()
             decoder = torch.nn.DataParallel(decoder).cuda()
             refiner = torch.nn.DataParallel(refiner).cuda()
