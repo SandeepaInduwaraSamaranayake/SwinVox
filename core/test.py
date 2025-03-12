@@ -85,10 +85,10 @@ def test_net(cfg,
 
         # Use DataParallel only for CUDA (multi-GPU support)
         if device.type == 'cuda':
-            encoder = torch.nn.DataParallel(encoder).cuda()
-            decoder = torch.nn.DataParallel(decoder).cuda()
-            refiner = torch.nn.DataParallel(refiner).cuda()
-            merger = torch.nn.DataParallel(merger).cuda()
+            encoder = torch.nn.DataParallel(encoder)
+            decoder = torch.nn.DataParallel(decoder)
+            refiner = torch.nn.DataParallel(refiner)
+            merger = torch.nn.DataParallel(merger)
 
         logging.info('Loading weights from %s ...' % (cfg.CONST.WEIGHTS))
         checkpoint = torch.load(cfg.CONST.WEIGHTS)
@@ -122,8 +122,8 @@ def test_net(cfg,
 
         with torch.no_grad():
             # Get data from data loader
-            rendering_images = utils.helpers.var_or_cuda(rendering_images)
-            ground_truth_volume = utils.helpers.var_or_cuda(ground_truth_volume)
+            rendering_images = utils.helpers.var_or_cuda(rendering_images, device)
+            ground_truth_volume = utils.helpers.var_or_cuda(ground_truth_volume, device)
 
             # Test the encoder, decoder, refiner and merger
             image_features = encoder(rendering_images)

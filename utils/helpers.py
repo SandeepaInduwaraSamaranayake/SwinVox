@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Developed by Haozhe Xie <cshzxie@gmail.com>
+# Modified  by Sandeepa Samaranayake <sandeepasamaranayake@outlook.com> 
 
 import numpy as np
 import torch
@@ -11,10 +12,8 @@ import torchvision.transforms as transforms
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def var_or_cuda(x):
-    if torch.cuda.is_available():
-        x = x.cuda(non_blocking=True)
-    return x
+def var_or_cuda(x, device):
+    return x.to(device, non_blocking=True)
 
 def init_weights(m):
     # Check if the module is of type Conv2d, Conv3d, ConvTranspose2d, or ConvTranspose3d

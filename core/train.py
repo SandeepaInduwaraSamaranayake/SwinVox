@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Developed by Haozhe Xie <cshzxie@gmail.com>
+# Modified  by Sandeepa Samaranayake <sandeepasamaranayake@outlook.com> 
 
 import os
 import logging
@@ -139,14 +140,14 @@ def train_net(cfg):
     encoder = encoder.to(device)
     decoder = decoder.to(device)
     refiner = refiner.to(device)
-    merger = merger.to(device)
+    merger  = merger.to(device)
 
     # Use DataParallel only for CUDA (multi-GPU support)
     if device.type == 'cuda':
-        encoder = torch.nn.DataParallel(encoder).cuda()
-        decoder = torch.nn.DataParallel(decoder).cuda()
-        refiner = torch.nn.DataParallel(refiner).cuda()
-        merger = torch.nn.DataParallel(merger).cuda()
+        encoder = torch.nn.DataParallel(encoder)
+        decoder = torch.nn.DataParallel(decoder)
+        refiner = torch.nn.DataParallel(refiner)
+        merger  = torch.nn.DataParallel(merger)
 
     # Set up loss functions
     bce_loss = torch.nn.BCELoss()
@@ -204,8 +205,8 @@ def train_net(cfg):
             data_time.update(time() - batch_end_time)
 
             # Get data from data loader
-            rendering_images = utils.helpers.var_or_cuda(rendering_images)
-            ground_truth_volumes = utils.helpers.var_or_cuda(ground_truth_volumes)
+            rendering_images = utils.helpers.var_or_cuda(rendering_images, device)
+            ground_truth_volumes = utils.helpers.var_or_cuda(ground_truth_volumes, device)
 
             # Train the encoder, decoder, refiner, and merger
             image_features = encoder(rendering_images)
