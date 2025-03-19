@@ -33,17 +33,6 @@ def test_net(cfg,
     # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use
     torch.backends.cudnn.benchmark = True
 
-    # Set device based on availability: CUDA > MPS > CPU
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-        logging.info('Using CUDA (GPU) for computation.')
-    elif torch.backends.mps.is_available():
-        device = torch.device("mps")
-        logging.info('Using MPS (Apple Silicon GPU) for computation.')
-    else:
-        device = torch.device("cpu")
-        logging.info('CUDA and MPS not available. Falling back to CPU.')
-
     # Load taxonomies of dataset
     taxonomies = []
     with open(cfg.DATASETS[cfg.DATASET.TEST_DATASET.upper()].TAXONOMY_FILE_PATH, encoding='utf-8') as file:
@@ -77,21 +66,14 @@ def test_net(cfg,
         refiner = Refiner(cfg)
         merger = Merger(cfg)
 
-        # Move models to the appropriate device
-        encoder = encoder.to(device)
-        decoder = decoder.to(device)
-        refiner = refiner.to(device)
-        merger = merger.to(device)
-
-        # Use DataParallel only for CUDA (multi-GPU support)
-        if device.type == 'cuda':
-            encoder = torch.nn.DataParallel(encoder)
-            decoder = torch.nn.DataParallel(decoder)
-            refiner = torch.nn.DataParallel(refiner)
-            merger = torch.nn.DataParallel(merger)
+        if torch.cuda.is_available():
+            encoder = torch.nn.DataParallel(encoder).cuda()
+            decoder = torch.nn.DataParallel(decoder).cuda()
+            refiner = torch.nn.DataParallel(refiner).cuda()
+            merger = torch.nn.DataParallel(merger).cuda()
 
         logging.info('Loading weights from %s ...' % (cfg.CONST.WEIGHTS))
-        checkpoint = torch.load(cfg.CONST.WEIGHTS, weights_only = False)
+        checkpoint = torch.load(cfg.CONST.WEIGHTS)
         epoch_idx = checkpoint['epoch_idx']
         encoder.load_state_dict(checkpoint['encoder_state_dict'])
         decoder.load_state_dict(checkpoint['decoder_state_dict'])
@@ -122,8 +104,8 @@ def test_net(cfg,
 
         with torch.no_grad():
             # Get data from data loader
-            rendering_images = utils.helpers.var_or_cuda(rendering_images, device)
-            ground_truth_volume = utils.helpers.var_or_cuda(ground_truth_volume, device)
+            rendering_images = utils.helpers.var_or_cuda(rendering_images)
+            ground_truth_volume = utils.helpers.var_or_cuda(ground_truth_volume)
 
             # Test the encoder, decoder, refiner and merger
             image_features = encoder(rendering_images)
@@ -163,11 +145,11 @@ def test_net(cfg,
             if output_dir and test_writer and sample_idx < 3:
                 img_dir = output_dir % 'images'
                 # Volume Visualization
-                rendering_views = utils.helpers.get_volume_views(generated_volume.cpu().numpy(), os.path.join(img_dir, 'test'), 'GV', sample_idx, epoch_idx)
-                test_writer.add_image('Model%02d/Reconstructed' % sample_idx, rendering_views, epoch_idx)
+                gv = utils.helpers.get_volume_views(generated_volume.cpu().numpy(), os.path.join(img_dir, 'test'), 'GV', sample_idx, epoch_idx)
+                test_writer.add_image('Model%02d/Reconstructed' % sample_idx, gv, epoch_idx)
 
-                rendering_views = utils.helpers.get_volume_views(ground_truth_volume.cpu().numpy(), os.path.join(img_dir, 'test'), 'GT', sample_idx, epoch_idx)
-                test_writer.add_image('Model%02d/GroundTruth' % sample_idx, rendering_views, epoch_idx)
+                gt = utils.helpers.get_volume_views(ground_truth_volume.cpu().numpy(), os.path.join(img_dir, 'test'), 'GT', sample_idx, epoch_idx)
+                test_writer.add_image('Model%02d/GroundTruth' % sample_idx, gt, epoch_idx)
 
             # Print sample loss and IoU
             logging.info('Test[%d/%d] Taxonomy = %s Sample = %s EDLoss = %.4f RLoss = %.4f IoU = %s' %

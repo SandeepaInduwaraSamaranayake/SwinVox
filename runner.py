@@ -5,7 +5,6 @@
 
 import logging
 import matplotlib
-#import multiprocessing as mp
 import numpy as np
 import os
 import sys
@@ -13,7 +12,6 @@ import sys
 matplotlib.use('Agg')
 
 from argparse import ArgumentParser
-#from datetime import datetime as dt
 from pprint import pprint
 
 from config import cfg
@@ -76,7 +74,6 @@ def main():
         if 'WEIGHTS' in cfg.CONST and os.path.exists(cfg.CONST.WEIGHTS):
             test_net(cfg)
         else:
-            #print('[FATAL] %s Please specify the file path of checkpoint.' % (dt.now()))
             logging.error('Please specify the file path of checkpoint.')
             sys.exit(2)
 
@@ -87,9 +84,6 @@ if __name__ == '__main__':
         raise Exception("Please follow the installation instruction on 'https://github.com/SandeepaInduwaraSamaranayake/SwinVox'")
 
     # Setup logger
-    # mp.log_to_stderr()
-    # logger = mp.get_logger()
-    # logger.setLevel(logging.INFO)
     logging.basicConfig(format='[%(levelname)s] %(asctime)s %(message)s', level=logging.DEBUG)
 
     main()
