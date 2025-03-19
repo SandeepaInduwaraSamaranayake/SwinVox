@@ -14,7 +14,8 @@ cfg                                         = __C
 __C.DATASETS                                = edict()
 __C.DATASETS.SHAPENET                       = edict()
 
-# __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet.json'                                           # for colab
+# __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet.json'                                           # for colab original json file
+# __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet_aeroplane_category.json'                        # for colab test json file
 __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet_aeroplane_category.json'    # for kaggle
 
 # __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH  = './datasets/PascalShapeNet.json'
