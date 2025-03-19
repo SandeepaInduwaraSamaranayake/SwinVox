@@ -12,30 +12,46 @@ import torchvision.transforms as transforms
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def var_or_cuda(x, device):
-    return x.to(device, non_blocking=True)
+def var_or_cuda(x):
+    if torch.cuda.is_available():
+        x = x.cuda(non_blocking=True)
+    return x
+
+
+# def init_weights(m):
+#     # Check if the module is of type Conv2d, Conv3d, ConvTranspose2d, or ConvTranspose3d
+#     if isinstance(m, (torch.nn.Conv2d, torch.nn.Conv3d, torch.nn.ConvTranspose2d, torch.nn.ConvTranspose3d)):
+#         torch.nn.init.kaiming_normal_(m.weight)
+#         if m.bias is not None:  # Ensure bias exists before initializing it
+#             torch.nn.init.constant_(m.bias, 0)
+    
+#     # For BatchNorm layers (2d or 3d)
+#     elif isinstance(m, (torch.nn.BatchNorm2d, torch.nn.BatchNorm3d)):
+#         torch.nn.init.constant_(m.weight, 1)
+#         torch.nn.init.constant_(m.bias, 0)
+    
+#     # For Linear layers
+#     elif isinstance(m, torch.nn.Linear):
+#         torch.nn.init.normal_(m.weight, 0, 0.01)
+#         if m.bias is not None:  # Ensure bias exists before initializing it
+#             torch.nn.init.constant_(m.bias, 0)
+    
+#     # Skip ReLU layers and others that don't have weights or biases
+#     elif isinstance(m, torch.nn.ReLU):
+#         pass  # No initialization needed for ReLU layers
 
 def init_weights(m):
-    # Check if the module is of type Conv2d, Conv3d, ConvTranspose2d, or ConvTranspose3d
-    if isinstance(m, (torch.nn.Conv2d, torch.nn.Conv3d, torch.nn.ConvTranspose2d, torch.nn.ConvTranspose3d)):
+    if type(m) == torch.nn.Conv2d or type(m) == torch.nn.Conv3d or \
+       type(m) == torch.nn.ConvTranspose2d or type(m) == torch.nn.ConvTranspose3d:
         torch.nn.init.kaiming_normal_(m.weight)
-        if m.bias is not None:  # Ensure bias exists before initializing it
+        if m.bias is not None:
             torch.nn.init.constant_(m.bias, 0)
-    
-    # For BatchNorm layers (2d or 3d)
-    elif isinstance(m, (torch.nn.BatchNorm2d, torch.nn.BatchNorm3d)):
+    elif type(m) == torch.nn.BatchNorm2d or type(m) == torch.nn.BatchNorm3d:
         torch.nn.init.constant_(m.weight, 1)
         torch.nn.init.constant_(m.bias, 0)
-    
-    # For Linear layers
-    elif isinstance(m, torch.nn.Linear):
+    elif type(m) == torch.nn.Linear:
         torch.nn.init.normal_(m.weight, 0, 0.01)
-        if m.bias is not None:  # Ensure bias exists before initializing it
-            torch.nn.init.constant_(m.bias, 0)
-    
-    # Skip ReLU layers and others that don't have weights or biases
-    elif isinstance(m, torch.nn.ReLU):
-        pass  # No initialization needed for ReLU layers
+        torch.nn.init.constant_(m.bias, 0)
 
 
 
