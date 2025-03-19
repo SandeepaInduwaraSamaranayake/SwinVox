@@ -158,7 +158,7 @@ def train_net(cfg):
     best_epoch = -1
     if 'WEIGHTS' in cfg.CONST and cfg.TRAIN.RESUME_TRAIN:
         logging.info('Recovering from %s ...' % (cfg.CONST.WEIGHTS))
-        checkpoint = torch.load(cfg.CONST.WEIGHTS)
+        checkpoint = torch.load(cfg.CONST.WEIGHTS, weights_only = False)
         init_epoch = checkpoint['epoch_idx']
         best_iou = checkpoint['best_iou']
         best_epoch = checkpoint['best_epoch']

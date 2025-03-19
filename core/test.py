@@ -91,7 +91,7 @@ def test_net(cfg,
             merger = torch.nn.DataParallel(merger)
 
         logging.info('Loading weights from %s ...' % (cfg.CONST.WEIGHTS))
-        checkpoint = torch.load(cfg.CONST.WEIGHTS)
+        checkpoint = torch.load(cfg.CONST.WEIGHTS, weights_only = False)
         epoch_idx = checkpoint['epoch_idx']
         encoder.load_state_dict(checkpoint['encoder_state_dict'])
         decoder.load_state_dict(checkpoint['decoder_state_dict'])
