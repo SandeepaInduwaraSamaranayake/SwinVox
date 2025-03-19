@@ -84,6 +84,6 @@ if __name__ == '__main__':
         raise Exception("Please follow the installation instruction on 'https://github.com/SandeepaInduwaraSamaranayake/SwinVox'")
 
     # Setup logger
-    logging.basicConfig(format='[%(levelname)s] %(asctime)s %(message)s', level=logging.DEBUG)
+    logging.basicConfig(format='[%(levelname)s] %(asctime)s %(message)s', level=logging.DEBUG, force=True)
 
     main()
