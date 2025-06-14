@@ -75,4 +75,5 @@ class Merger(torch.nn.Module):
         coarse_volumes = coarse_volumes * volume_weights
         coarse_volumes = torch.sum(coarse_volumes, dim=1)
 
-        return torch.clamp(coarse_volumes, min=0, max=1)
+        #return torch.clamp(coarse_volumes, min=0, max=1)
+        return coarse_volumes

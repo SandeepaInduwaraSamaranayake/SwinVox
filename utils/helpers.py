@@ -16,13 +16,15 @@ def var_or_cuda(x):
     if torch.cuda.is_available():
         x = x.cuda(non_blocking=True)
     return x
-
+        
 def init_weights(m):
     # Check if the module is of type Conv2d, Conv3d, ConvTranspose2d, or ConvTranspose3d
     if isinstance(m, (torch.nn.Conv2d, torch.nn.Conv3d, torch.nn.ConvTranspose2d, torch.nn.ConvTranspose3d)):
-        torch.nn.init.kaiming_normal_(m.weight)
-        if m.bias is not None:  # Ensure bias exists before initializing it
+        torch.nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='leaky_relu', a=0.02)
+        if m.bias is not None:
             torch.nn.init.constant_(m.bias, 0)
+        # Scale down weights to reduce initial output magnitudes
+        m.weight.data *= 0.1
     
     # For BatchNorm layers (2d or 3d)
     elif isinstance(m, (torch.nn.BatchNorm2d, torch.nn.BatchNorm3d)):
@@ -32,13 +34,14 @@ def init_weights(m):
     # For Linear layers
     elif isinstance(m, torch.nn.Linear):
         torch.nn.init.normal_(m.weight, 0, 0.01)
-        if m.bias is not None:  # Ensure bias exists before initializing it
+        if m.bias is not None:
             torch.nn.init.constant_(m.bias, 0)
+        # Scale down weights to reduce initial output magnitudes
+        m.weight.data *= 0.1
     
     # Skip ReLU layers and others that don't have weights or biases
-    elif isinstance(m, torch.nn.ReLU):
-        pass  # No initialization needed for ReLU layers
-        
+    elif isinstance(m, (torch.nn.ReLU, torch.nn.LeakyReLU)):
+        pass  # No initialization needed for activation layers
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters())

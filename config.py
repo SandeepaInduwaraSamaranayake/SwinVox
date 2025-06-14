@@ -15,18 +15,20 @@ __C.DATASETS                                = edict()
 __C.DATASETS.SHAPENET                       = edict()
 
 # __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet.json'                                           # for colab original json file
-# __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet_aeroplane_category.json'                        # for colab test json file
-__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet_aeroplane_category.json'    # for kaggle
+__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet_aeroplane_category.json'                        # for colab test json file
+#__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet_aeroplane_category.json'    # for kaggle
 
 # __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH  = './datasets/PascalShapeNet.json'
 
-#__C.DATASETS.SHAPENET.RENDERING_PATH        = '/content/ShapeNetRendering/%s/%s/rendering/%02d.png'                                # for colab
-__C.DATASETS.SHAPENET.RENDERING_PATH        = '/kaggle/input/shapenet/ShapeNetRendering/ShapeNetRendering/%s/%s/rendering/%02d.png' # for kaggle
+__C.DATASETS.SHAPENET.RENDERING_PATH        = '/content/ShapeNetRendering/%s/%s/rendering/%02d.png'                                # for colab
+#__C.DATASETS.SHAPENET.RENDERING_PATH        = '/kaggle/input/shapenet/ShapeNetRendering/ShapeNetRendering/%s/%s/rendering/%02d.png' # for kaggle
+#__C.DATASETS.SHAPENET.RENDERING_PATH        = '/content/drive/MyDrive/Colab_Assets/SwinVox/Airplane_Category/airplane_rendering/%s/%s/rendering/%02d.png'                                 # colab airplane
 
 # __C.DATASETS.SHAPENET.RENDERING_PATH      = '/home/hzxie/Datasets/ShapeNet/PascalShapeNetRendering/%s/%s/render_%04d.jpg'
 
 __C.DATASETS.SHAPENET.VOXEL_PATH            = '/content/ShapeNetVox32/%s/%s/model.binvox'                               # for colab
-__C.DATASETS.SHAPENET.VOXEL_PATH            = '/kaggle/input/shapenet/ShapeNetVox32/ShapeNetVox32/%s/%s/model.binvox'   # for kaggle
+#__C.DATASETS.SHAPENET.VOXEL_PATH            = '/kaggle/input/shapenet/ShapeNetVox32/ShapeNetVox32/%s/%s/model.binvox'   # for kaggle
+#__C.DATASETS.SHAPENET.VOXEL_PATH            = '/content/drive/MyDrive/Colab_Assets/SwinVox/Airplane_Category/airplanevox32/%s/%s/model.binvox'  # for colab airplane
 
 __C.DATASETS.PASCAL3D                       = edict()
 __C.DATASETS.PASCAL3D.TAXONOMY_FILE_PATH    = './datasets/Pascal3D.json'
@@ -63,8 +65,9 @@ __C.CONST.N_VIEWS_RENDERING                 = 1         # Dummy property for Pas
 __C.CONST.CROP_IMG_W                        = 128       # Dummy property for Pascal 3D
 __C.CONST.CROP_IMG_H                        = 128       # Dummy property for Pascal 3D
 __C.CONST.NUM_WORKER                        = 4         # number of data workers -- suggested max is 2, but already initialized 4 as default.
-__C.CONST.WEIGHTS                           = '/content/drive/MyDrive/Colab Assets/SwinVox/SwinVox_weights/checkpoint-epoch-105.pth'   # if training is resuming, uncomment this replace 'path' with weight path.
+__C.CONST.WEIGHTS                           = '/content/drive/MyDrive/Colab Git Clones/SwinVox/SwinVox/output/checkpoints/2025-06-13T16:07:22.579164/checkpoint-best.pth'   # if training is resuming, uncomment this replace 'path' with weight path.
 __C.CONST.CROSS_ATTENTION_REDUCTION_RATIO   = 4
+__C.CONST.ATTENTION_SPATIAL_DOWNSAMPLE_RATIO = 2
 
 #
 # Directories
@@ -87,11 +90,12 @@ __C.NETWORK.ATTENTION_REDUCTION             = 4
 
 
 
+
 #
 # Training
 #
 __C.TRAIN                                   = edict()
-__C.TRAIN.RESUME_TRAIN                      = False
+__C.TRAIN.RESUME_TRAIN                      = True
 __C.TRAIN.NUM_EPOCHS                        = 250           # default 250
 __C.TRAIN.BRIGHTNESS                        = .4
 __C.TRAIN.CONTRAST                          = .4
@@ -101,10 +105,10 @@ __C.TRAIN.RANDOM_BG_COLOR_RANGE             = [[225, 255], [225, 255], [225, 255
 __C.TRAIN.POLICY                            = 'adam'        # available options: sgd, adam
 __C.TRAIN.EPOCH_START_USE_REFINER           = 0
 __C.TRAIN.EPOCH_START_USE_MERGER            = 0
-__C.TRAIN.ENCODER_LEARNING_RATE             = 7.5e-4 # default is 1e-3
-__C.TRAIN.DECODER_LEARNING_RATE             = 7.5e-4 # default is 1e-3
-__C.TRAIN.REFINER_LEARNING_RATE             = 7.5e-4 # default is 1e-3
-__C.TRAIN.MERGER_LEARNING_RATE              = 7.5e-5 # default is 1e-4
+__C.TRAIN.ENCODER_LEARNING_RATE             = 1e-4 # default is 1e-3
+__C.TRAIN.DECODER_LEARNING_RATE             = 1e-4 # default is 1e-3
+__C.TRAIN.REFINER_LEARNING_RATE             = 1e-4 # default is 1e-3
+__C.TRAIN.MERGER_LEARNING_RATE              = 1e-5 # default is 1e-4
 __C.TRAIN.ENCODER_LR_MILESTONES             = [150]
 __C.TRAIN.DECODER_LR_MILESTONES             = [150]
 __C.TRAIN.REFINER_LR_MILESTONES             = [150]

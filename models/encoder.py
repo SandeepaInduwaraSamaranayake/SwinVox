@@ -67,7 +67,7 @@ class Encoder(nn.Module):
         rendering_images = torch.split(rendering_images, 1, dim=0)  # List of [1, batch_size, img_c, img_h, img_w]
         image_features = []
 
-        for img in rendering_images:
+        for i, img in enumerate(rendering_images):
             img = img.squeeze(dim=0)  # [batch_size, img_c, img_h, img_w]
 
             # ResNet Features
@@ -76,7 +76,9 @@ class Encoder(nn.Module):
 
             # Swin Transformer Features
             swin_features = self.swin_transformer(img)  # [batch_size, 768, 7, 7]
+
             swin_features = self.swin_reduce(swin_features)  # [batch_size, 512, 7, 7]
+
             swin_features = F.interpolate(swin_features, size=resnet_features.shape[2:], mode='bilinear', align_corners=False)  # [batch_size, 512, 14, 14]
 
             # Concatenate Features

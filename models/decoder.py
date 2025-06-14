@@ -160,7 +160,7 @@ class Decoder(torch.nn.Module):
         )
         self.layer5 = torch.nn.Sequential(
             torch.nn.ConvTranspose3d(8, 1, kernel_size=1, bias=cfg.NETWORK.TCONV_USE_BIAS),
-            torch.nn.Sigmoid()
+            #torch.nn.Sigmoid()
         )
 
     def forward(self, image_features):
@@ -172,24 +172,33 @@ class Decoder(torch.nn.Module):
         for features in image_features:
             gen_volume = features.view(-1, 1568, 2, 2, 2)
             # print(gen_volume.size())   # torch.Size([batch_size, 1568, 2, 2, 2])
+            #print(f"Decoder (gen1): After initial view NaN: {torch.isnan(gen_volume).any()}, Inf: {torch.isinf(gen_volume).any()}")
             gen_volume = self.layer1(gen_volume)
             # print(gen_volume.size())   # torch.Size([batch_size, 512, 4, 4, 4])
+            #print(f"Decoder (gen2): After initial view NaN: {torch.isnan(gen_volume).any()}, Inf: {torch.isinf(gen_volume).any()}")
             gen_volume = self.layer2(gen_volume)
             # print(gen_volume.size())   # torch.Size([batch_size, 128, 8, 8, 8])
+            #print(f"Decoder (gen3): After initial view NaN: {torch.isnan(gen_volume).any()}, Inf: {torch.isinf(gen_volume).any()}")
             gen_volume = self.layer3(gen_volume)
             # print(gen_volume.size())   # torch.Size([batch_size, 32, 16, 16, 16])
+            #print(f"Decoder (gen4): After initial view NaN: {torch.isnan(gen_volume).any()}, Inf: {torch.isinf(gen_volume).any()}")
             gen_volume = self.layer4(gen_volume)
             raw_feature = gen_volume
             # print(gen_volume.size())   # torch.Size([batch_size, 8, 32, 32, 32])
+            #print(f"Decoder (gen4): After initial view NaN: {torch.isnan(gen_volume).any()}, Inf: {torch.isinf(gen_volume).any()}")
             gen_volume = self.layer5(gen_volume)
             # print(gen_volume.size())   # torch.Size([batch_size, 1, 32, 32, 32])
+            #print(f"Decoder (gen5): After initial view NaN: {torch.isnan(gen_volume).any()}, Inf: {torch.isinf(gen_volume).any()}")
             raw_feature = torch.cat((raw_feature, gen_volume), dim=1)
             # print(raw_feature.size())  # torch.Size([batch_size, 9, 32, 32, 32])
+            #print(f"Decoder (gen6): After initial view NaN: {torch.isnan(gen_volume).any()}, Inf: {torch.isinf(gen_volume).any()}")
             gen_volumes.append(torch.squeeze(gen_volume, dim=1))
             raw_features.append(raw_feature)
 
         gen_volumes = torch.stack(gen_volumes).permute(1, 0, 2, 3, 4).contiguous()
         raw_features = torch.stack(raw_features).permute(1, 0, 2, 3, 4, 5).contiguous()
         # print(gen_volumes.size())      # torch.Size([batch_size, n_views, 32, 32, 32])
+        #print(f"Decoder (gen2_last): After initial view NaN: {torch.isnan(gen_volume).any()}, Inf: {torch.isinf(gen_volume).any()}")
         # print(raw_features.size())      # torch.Size([batch_size, n_views, 9, 32, 32, 32])
+        #print(f"Decoder (raw last): After initial view NaN: {torch.isnan(raw_features).any()}, Inf: {torch.isinf(raw_features).any()}")
         return raw_features, gen_volumes
