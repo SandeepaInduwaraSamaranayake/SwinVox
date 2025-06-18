@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Developed by Haozhe Xie <cshzxie@gmail.com>
+# Modified by Sandeepa Samaranayake <sandeepasamaranayake@outlook.com>
 
 import logging
 import matplotlib
