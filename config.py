@@ -25,8 +25,8 @@ __C.DATASETS.SHAPENET.RENDERING_PATH        = '/kaggle/input/shapenet/ShapeNetRe
 
 # __C.DATASETS.SHAPENET.RENDERING_PATH      = '/home/hzxie/Datasets/ShapeNet/PascalShapeNetRendering/%s/%s/render_%04d.jpg'
 
-__C.DATASETS.SHAPENET.VOXEL_PATH            = '/content/ShapeNetVox32/%s/%s/model.binvox'                                                                   # for colab
-#__C.DATASETS.SHAPENET.VOXEL_PATH            = '/kaggle/input/shapenet/ShapeNetVox32/ShapeNetVox32/%s/%s/model.binvox'                                      # for kaggle
+#__C.DATASETS.SHAPENET.VOXEL_PATH            = '/content/ShapeNetVox32/%s/%s/model.binvox'                                                                   # for colab
+__C.DATASETS.SHAPENET.VOXEL_PATH            = '/kaggle/input/shapenet/ShapeNetVox32/ShapeNetVox32/%s/%s/model.binvox'                                      # for kaggle
 
 __C.DATASETS.PASCAL3D                       = edict()
 __C.DATASETS.PASCAL3D.TAXONOMY_FILE_PATH    = './datasets/Pascal3D.json'
