@@ -26,8 +26,8 @@ from models.refiner import Refiner
 from models.merger import Merger
 from utils.average_meter import AverageMeter
 
-# Import for Automatic Mixed Precision
-from torch.cuda.amp import autocast, GradScaler # Corrected import for torch.cuda.amp
+# Corrected Import for Automatic Mixed Precision
+from torch.amp import autocast, GradScaler # Use torch.amp, not torch.cuda.amp
 
 
 def find_lr(cfg):
@@ -83,7 +83,6 @@ def find_lr(cfg):
         merger  = torch.nn.DataParallel(merger).to(device)
 
     # Save initial state for reset AFTER DataParallel is applied
-    # This ensures the keys have the 'module.' prefix if DataParallel is used.
     initial_encoder_state = encoder.state_dict()
     initial_decoder_state = decoder.state_dict()
     initial_refiner_state = refiner.state_dict() if cfg.NETWORK.USE_REFINER else None
@@ -104,8 +103,8 @@ def find_lr(cfg):
     else:
         raise Exception('[FATAL] %s Unknown optimizer %s.' % (dt.now(), cfg.TRAIN.POLICY))
 
-    # Initialize GradScaler for mixed precision training
-    scaler = GradScaler(init_scale=2**16)
+    # Initialize GradScaler for mixed precision training (Corrected)
+    scaler = GradScaler(init_scale=2**16) # Removed 'device_type' argument
 
     # Set up loss functions
     bce_loss = torch.nn.BCEWithLogitsLoss()
@@ -127,8 +126,9 @@ def find_lr(cfg):
 
     # Set initial learning rates for all optimizers
     for solver in [encoder_solver, decoder_solver, refiner_solver, merger_solver]:
-        for param_group in solver.param_groups:
-            param_group['lr'] = start_lr
+        if solver: # Check if solver is not None (e.g., if refiner/merger are not used)
+            for param_group in solver.param_groups:
+                param_group['lr'] = start_lr
 
     # Switch models to training mode
     encoder.train()
@@ -150,7 +150,9 @@ def find_lr(cfg):
         rendering_images = torch.clamp(rendering_images, min=-1, max=1)
         ground_truth_volumes = torch.clamp(ground_truth_volumes, min=0, max=1)
 
-        with autocast(device_type=device.type, enabled=True):
+        # Corrected autocast usage
+        # Pass the device type as the first argument, e.g., 'cuda' or 'cpu'
+        with autocast(device.type, enabled=True): 
             image_features = encoder(rendering_images)
             raw_features, generated_volumes = decoder(image_features)
 
@@ -172,8 +174,11 @@ def find_lr(cfg):
         # Gradient descent
         encoder_solver.zero_grad()
         decoder_solver.zero_grad()
-        refiner_solver.zero_grad()
-        merger_solver.zero_grad()
+        # Only zero_grad if the refiner/merger are actually used and their solvers exist
+        if cfg.NETWORK.USE_REFINER:
+            refiner_solver.zero_grad()
+        if cfg.NETWORK.USE_MERGER:
+            merger_solver.zero_grad()
 
         scaler.scale(total_loss).backward()
 
@@ -181,14 +186,18 @@ def find_lr(cfg):
         # If clipping scaled gradients, remove unscale_()
         scaler.unscale_(encoder_solver)
         scaler.unscale_(decoder_solver)
-        scaler.unscale_(refiner_solver)
-        scaler.unscale_(merger_solver)
+        if cfg.NETWORK.USE_REFINER:
+            scaler.unscale_(refiner_solver)
+        if cfg.NETWORK.USE_MERGER:
+            scaler.unscale_(merger_solver)
 
         # Gradient clipping
         torch.nn.utils.clip_grad_norm_(encoder.parameters(), max_norm=1.0)
         torch.nn.utils.clip_grad_norm_(decoder.parameters(), max_norm=1.0)
-        torch.nn.utils.clip_grad_norm_(refiner.parameters(), max_norm=1.0)
-        torch.nn.utils.clip_grad_norm_(merger.parameters(), max_norm=1.0)
+        if cfg.NETWORK.USE_REFINER:
+            torch.nn.utils.clip_grad_norm_(refiner.parameters(), max_norm=1.0)
+        if cfg.NETWORK.USE_MERGER:
+            torch.nn.utils.clip_grad_norm_(merger.parameters(), max_norm=1.0)
 
         scaler.step(encoder_solver)
         scaler.step(decoder_solver)
@@ -216,8 +225,9 @@ def find_lr(cfg):
 
         # Increase learning rate for the next batch
         for solver in [encoder_solver, decoder_solver, refiner_solver, merger_solver]:
-            for param_group in solver.param_groups:
-                param_group['lr'] *= lr_multiplier
+            if solver: # Check if solver is not None
+                for param_group in solver.param_groups:
+                    param_group['lr'] *= lr_multiplier
 
         logging.info(f'LR Finder Batch {batch_idx + 1}/{num_batches_to_test}, LR: {current_lr:.2e}, Loss: {loss_item:.4f}')
 
@@ -235,29 +245,19 @@ def find_lr(cfg):
     # Find where the gradient of the smoothed loss is steepest
     grad = np.gradient(np.array(smoothed_losses), np.array(lrs))
     # Filter out initial noisy points and potentially diverging points
-    # Consider a certain window or exclude very early and very late stages
     valid_indices = np.where(np.array(smoothed_losses) < 2 * best_loss)[0] # Only consider points before severe divergence
     if len(valid_indices) > 5: # Need enough points to compute gradient meaningfully
-        # Filter for positive slopes in the gradient to find where loss is decreasing most rapidly
-        # We are looking for the minimum (most negative) loss in the smoothed curve, typically before it starts rising again.
-        # Let's refine the suggestion to be a point before the loss starts increasing, where the slope is steepest.
-        # Find the minimum loss and then look for the largest negative slope before that.
         min_loss_idx = np.argmin(smoothed_losses)
         
-        # Consider a window before the minimum loss to find the steepest decline
         search_window_end_idx = min_loss_idx 
-        # Look back from min_loss_idx to find the steepest descent
-        # Avoid the very first few points which can be noisy
-        search_window_start_idx = max(0, min_loss_idx - 50) # Search 50 points back, adjust as needed
+        search_window_start_idx = max(0, min_loss_idx - 50) 
 
         if search_window_start_idx < search_window_end_idx:
             segment_lrs = np.array(lrs)[search_window_start_idx:search_window_end_idx]
             segment_smoothed_losses = np.array(smoothed_losses)[search_window_start_idx:search_window_end_idx]
             
-            # Compute gradient over this segment
             if len(segment_lrs) > 1:
                 segment_grad = np.gradient(segment_smoothed_losses, segment_lrs)
-                # Find the index of the steepest negative slope within this segment
                 steepest_idx_in_segment = np.argmin(segment_grad)
                 suggested_lr = segment_lrs[steepest_idx_in_segment]
                 
@@ -275,7 +275,7 @@ def find_lr(cfg):
 
     plt.legend()
     plt.savefig(os.path.join(cfg.DIR.OUT_PATH, f'lr_finder_plot_{dt.now().strftime("%Y%m%d-%H%M%S")}.png'))
-    # plt.show() # Commented out plt.show() as it might block execution in a script
+    # plt.show() 
 
     # Reset model and optimizer states to initial
     encoder.load_state_dict(initial_encoder_state)
@@ -285,15 +285,10 @@ def find_lr(cfg):
     if cfg.NETWORK.USE_MERGER:
         merger.load_state_dict(initial_merger_state)
     
-    # Important: Reset optimizers as well, as their internal states (e.g., Adam's momentum buffers)
-    # would be corrupted by the LR finder run. Re-instantiate them.
-    # Note: The learning rates here are the *initial* learning rates from your config,
-    # not the ones suggested by the LR finder. The user will manually update the config
-    # with the suggested LR after reviewing the plot.
+    # Important: Reset optimizers as well. Re-instantiate them.
     if cfg.TRAIN.POLICY == 'adam':
         encoder_solver = torch.optim.Adam(filter(lambda p: p.requires_grad, encoder.parameters()), lr=cfg.TRAIN.ENCODER_LEARNING_RATE, betas=cfg.TRAIN.BETAS)
         decoder_solver = torch.optim.Adam(decoder.parameters(), lr=cfg.TRAIN.DECODER_LEARNING_RATE, betas=cfg.TRAIN.BETAS)
-        # Ensure these are only created if the modules are used, matching your training logic
         refiner_solver = torch.optim.Adam(refiner.parameters(), lr=cfg.TRAIN.REFINER_LEARNING_RATE, betas=cfg.TRAIN.BETAS) if cfg.NETWORK.USE_REFINER else None
         merger_solver = torch.optim.Adam(merger.parameters(), lr=cfg.TRAIN.MERGER_LEARNING_RATE, betas=cfg.TRAIN.BETAS) if cfg.NETWORK.USE_MERGER else None
     elif cfg.TRAIN.POLICY == 'sgd':
