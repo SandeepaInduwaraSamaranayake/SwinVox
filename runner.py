@@ -18,6 +18,7 @@ from pprint import pprint
 from config import cfg
 from core.train import train_net
 from core.test import test_net
+from utils.lr_finder import find_lr
 
 
 def get_args_from_command_line():
@@ -37,6 +38,10 @@ def get_args_from_command_line():
     parser.add_argument('--epoch', dest='epoch', help='number of epoches', default=cfg.TRAIN.NUM_EPOCHS, type=int)
     parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=None)
     parser.add_argument('--out', dest='out_path', help='Set output path', default=cfg.DIR.OUT_PATH)
+    parser.add_argument('--lr_find', 
+                        dest='lr_find', 
+                        help='Run Learning Rate Finder', 
+                        action='store_true')
     args = parser.parse_args()
     return args
 
@@ -67,6 +72,27 @@ def main():
     # Set GPU to use
     if type(cfg.CONST.DEVICE) == str:
         os.environ["CUDA_VISIBLE_DEVICES"] = cfg.CONST.DEVICE
+
+    
+    # --- NEW LR FINDER LOGIC ---
+    if args.lr_find:
+        logging.info('=' * 20)
+        logging.info(' Starting Learning Rate Finder ')
+        logging.info('=' * 20)
+        
+        # Ensure output directory exists for LR finder plot
+        os.makedirs(cfg.DIR.OUT_PATH, exist_ok=True) 
+
+        suggested_lr = find_lr(cfg) # Call the LR finder function
+        
+        logging.info('=' * 20)
+        logging.info(' Learning Rate Finder Finished ')
+        logging.info(f' Suggested Base Learning Rate: {suggested_lr:.7f}')
+        logging.info(' Please review the generated plot in your output directory and update your config file.')
+        logging.info(' Then run normal training without the --lr_find flag.')
+        logging.info('=' * 20)
+        sys.exit(0) # Exit after finding LR, user needs to manually update config
+    # ---------------------------
 
     # Start train/test process
     if not args.test:
