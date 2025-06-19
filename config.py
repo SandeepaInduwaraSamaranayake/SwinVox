@@ -15,8 +15,9 @@ __C.DATASETS                                = edict()
 __C.DATASETS.SHAPENET                       = edict()
 
 # __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet.json'                                                                                  # for colab original json file
-#__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet_aeroplane_category.json'                                                                 # for colab test json file
-__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet_aeroplane_category.json'                                          # for kaggle
+#__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet_aeroplane_category.json'                                                                # for colab test json file
+#__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet_aeroplane_category.json'                                          # for kaggle airplane
+__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet.json'                                                              # for kaggle full
 
 # __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH  = './datasets/PascalShapeNet.json'
 
@@ -26,7 +27,7 @@ __C.DATASETS.SHAPENET.RENDERING_PATH        = '/kaggle/input/shapenet/ShapeNetRe
 # __C.DATASETS.SHAPENET.RENDERING_PATH      = '/home/hzxie/Datasets/ShapeNet/PascalShapeNetRendering/%s/%s/render_%04d.jpg'
 
 #__C.DATASETS.SHAPENET.VOXEL_PATH            = '/content/ShapeNetVox32/%s/%s/model.binvox'                                                                   # for colab
-__C.DATASETS.SHAPENET.VOXEL_PATH            = '/kaggle/input/shapenet/ShapeNetVox32/ShapeNetVox32/%s/%s/model.binvox'                                      # for kaggle
+__C.DATASETS.SHAPENET.VOXEL_PATH            = '/kaggle/input/shapenet/ShapeNetVox32/ShapeNetVox32/%s/%s/model.binvox'                                        # for kaggle
 
 __C.DATASETS.PASCAL3D                       = edict()
 __C.DATASETS.PASCAL3D.TAXONOMY_FILE_PATH    = './datasets/Pascal3D.json'
