@@ -133,6 +133,7 @@ __C.TEST.VOXEL_THRESH                       = [.2, .3, .4, .5]
 #
 # Lr_Finder Options
 #
+__C.LR_FINDER                               = edict()
 __C.LR_FINDER.START_LR                      = 1e-7
 __C.LR_FINDER.END_LR                        = 1e-2
 __C.LR_FINDER.NUM_BATCHES_TO_TEST           = 500
