@@ -69,7 +69,6 @@ def optuna_tune(cfg):
             'NOISE_STD': trial.suggest_float('NOISE_STD', 0.01, 0.1),
 
             'WEIGHT_DECAY': trial.suggest_float('WEIGHT_DECAY', 1e-6, 1e-3, log=True),
-            
         }
 
         # Update trial config
