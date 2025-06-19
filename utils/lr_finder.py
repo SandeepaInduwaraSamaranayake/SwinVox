@@ -194,7 +194,7 @@ def find_lr(cfg):
             best_loss = loss_item
 
         if smoothed_losses[-1] > 10 * best_loss and batch_idx > 10:
-            logging.warning(f'Loss diverged at LR {current_lr:.2e}. Stopping.')
+            logging.info(f'Loss diverged at LR {current_lr:.2e}. Stopping.')
             break
 
         for param_group in encoder_solver.param_groups:
@@ -240,7 +240,7 @@ def find_lr(cfg):
                 logging.info('Please review the generated plot in your output directory and update your config file.')
                 logging.info('=' * 40)
     if suggested_lr is None:
-        logging.warning("Could not suggest an optimal LR.")
+        logging.info("Could not suggest an optimal LR.")
 
     plt.legend()
     plt.show() 

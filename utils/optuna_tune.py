@@ -310,7 +310,7 @@ def optuna_tune(cfg):
                 encoder_losses.update(encoder_loss.item())
                 refiner_losses.update(refiner_loss.item())
 
-                logging.debug(f"Trial {trial.number} Epoch {epoch_idx+1}/{trial_cfg.TRAIN.NUM_EPOCHS} Batch {batch_idx+1}: "
+                logging.info(f"Trial {trial.number} Epoch {epoch_idx+1}/{trial_cfg.TRAIN.NUM_EPOCHS} Batch {batch_idx+1}: "
                               f"Encoder Loss={encoder_loss.item():.4f}, Refiner Loss={refiner_loss.item():.4f}")
 
             # Adjust learning rate
