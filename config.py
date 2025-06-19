@@ -86,7 +86,7 @@ __C.NETWORK.USE_REFINER                     = True
 __C.NETWORK.USE_MERGER                      = True
 
 __C.NETWORK.USE_SWIN_T_MULTI_STAGE          = True
-__C.NETWORK.SWIN_T_STAGES                   = [1,2,3]          # Single or multiple stage(s) [0, 1, 2, 3]. -1 for only final stage
+__C.NETWORK.SWIN_T_STAGES                   = [0,1,2,3]          # Single or multiple stage(s) [0, 1, 2, 3]. -1 for only final stage
 __C.NETWORK.USE_CROSS_VIEW_ATTENTION        = True
 __C.NETWORK.CROSS_ATT_REDUCTION_RATIO       = 4
 __C.NETWORK.ATT_SPATIAL_DOWNSAMPLE_RATIO    = 2
