@@ -128,3 +128,12 @@ __C.TRAIN.UPDATE_N_VIEWS_RENDERING          = False
 __C.TEST                                    = edict()
 __C.TEST.RANDOM_BG_COLOR_RANGE              = [[240, 240], [240, 240], [240, 240]]
 __C.TEST.VOXEL_THRESH                       = [.2, .3, .4, .5]
+
+
+#
+# Lr_Finder Options
+#
+__C.LR_FINDER.START_LR                      = 1e-7
+__C.LR_FINDER.END_LR                        = 1e-2
+__C.LR_FINDER.NUM_BATCHES_TO_TEST           = 500
+__C.LR_FINDER.AVG_BETA                      = 0.98

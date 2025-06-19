@@ -73,26 +73,10 @@ def main():
     if type(cfg.CONST.DEVICE) == str:
         os.environ["CUDA_VISIBLE_DEVICES"] = cfg.CONST.DEVICE
 
-    
-    # --- NEW LR FINDER LOGIC ---
     if args.lr_find:
-        logging.info('=' * 40)
-        logging.info(' Starting Learning Rate Finder ')
-        logging.info('=' * 40)
-        
-        # Ensure output directory exists for LR finder plot
-        os.makedirs(cfg.DIR.OUT_PATH, exist_ok=True) 
-
-        suggested_lr = find_lr(cfg) # Call the LR finder function
-        
-        logging.info('=' * 40)
-        logging.info(' Learning Rate Finder Finished ')
-        logging.info(f' Suggested Base Learning Rate: {suggested_lr:.7f}')
-        logging.info(' Please review the generated plot in your output directory and update your config file.')
-        logging.info(' Then run normal training without the --lr_find flag.')
-        logging.info('=' * 40)
+        find_lr(cfg) # Call the LR finder function
+        logging.info('Then run normal training without the --lr_find flag.')
         sys.exit(0) # Exit after finding LR, user needs to manually update config
-    # ---------------------------
 
     # Start train/test process
     if not args.test:
