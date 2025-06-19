@@ -19,10 +19,11 @@ from config import cfg
 from core.train import train_net
 from core.test import test_net
 from utils.lr_finder import find_lr
+from utils.optuna_tune import optuna_tune
 
 
 def get_args_from_command_line():
-    parser = ArgumentParser(description='Parser of Runner of Pix2Vox')
+    parser = ArgumentParser(description='Parser of Runner of SwinVox')
     parser.add_argument('--gpu',
                         dest='gpu_id',
                         help='GPU device id to use [cuda0]',
@@ -41,6 +42,10 @@ def get_args_from_command_line():
     parser.add_argument('--lr_find', 
                         dest='lr_find', 
                         help='Run Learning Rate Finder', 
+                        action='store_true')
+    parser.add_argument('--optuna_tune', 
+                        dest='optuna_tune', 
+                        help='Run Optuna hyperparameter tuning', 
                         action='store_true')
     args = parser.parse_args()
     return args
@@ -77,6 +82,11 @@ def main():
         find_lr(cfg) # Call the LR finder function
         logging.info('Then run normal training without the --lr_find flag.')
         sys.exit(0) # Exit after finding LR, user needs to manually update config
+
+    if args.optuna_tune:
+        optuna_tune(cfg)
+        logging.info('Then run normal training with updated config_best.py.')
+        sys.exit(0)
 
     # Start train/test process
     if not args.test:
