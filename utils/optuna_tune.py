@@ -49,15 +49,15 @@ def optuna_tune(cfg):
         config_params = {
             'BATCH_SIZE': trial.suggest_categorical('BATCH_SIZE', [32, 64]),
 
-            'ENCODER_LR': trial.suggest_float('ENCODER_LR', 1e-5, 1e-3, log=True),
-            'DECODER_LR': trial.suggest_float('DECODER_LR', 1e-5, 1e-3, log=True),
-            'MERGER_LR': trial.suggest_float('MERGER_LR', 1e-6, 1e-4, log=True),
-            'REFINER_LR': trial.suggest_float('REFINER_LR', 1e-6, 1e-4, log=True),
+            'ENCODER_LR': trial.suggest_float('ENCODER_LR', 1e-7, 5e-4, log=True),
+            'DECODER_LR': trial.suggest_float('DECODER_LR', 1e-7, 5e-4, log=True),
+            'MERGER_LR': trial.suggest_float('MERGER_LR', 1e-8, 1e-3, log=True),
+            'REFINER_LR': trial.suggest_float('REFINER_LR', 1e-8, 1e-3, log=True),
 
             'GAMMA': trial.suggest_float('GAMMA', 0.1, 0.9),
 
-            'USE_MERGER': trial.suggest_categorical('USE_MERGER', [True, False]),
-            'USE_REFINER': trial.suggest_categorical('USE_REFINER', [True, False]),
+            # 'USE_MERGER': trial.suggest_categorical('USE_MERGER', [True, False]),
+            # 'USE_REFINER': trial.suggest_categorical('USE_REFINER', [True, False]),
 
             'POLICY': trial.suggest_categorical('POLICY', ['adam', 'sgd']),
             'BETA1': trial.suggest_float('BETA1', 0.8, 0.9, step=0.05),
@@ -81,8 +81,8 @@ def optuna_tune(cfg):
 
         trial_cfg.TRAIN.GAMMA = config_params['GAMMA']
 
-        trial_cfg.NETWORK.USE_MERGER = config_params['USE_MERGER']
-        trial_cfg.NETWORK.USE_REFINER = config_params['USE_REFINER']
+        # trial_cfg.NETWORK.USE_MERGER = config_params['USE_MERGER']
+        # trial_cfg.NETWORK.USE_REFINER = config_params['USE_REFINER']
 
         trial_cfg.TRAIN.POLICY = config_params['POLICY']
         trial_cfg.TRAIN.BETAS = (config_params['BETA1'], config_params['BETA2'])
@@ -99,8 +99,9 @@ def optuna_tune(cfg):
         trial_cfg.TRAIN.DECODER_LR_MILESTONES = [3]
         trial_cfg.TRAIN.MERGER_LR_MILESTONES = [3]
         trial_cfg.TRAIN.REFINER_LR_MILESTONES = [3]
-        trial_cfg.TRAIN.EPOCH_START_USE_REFINER = 0
-        trial_cfg.TRAIN.EPOCH_START_USE_MERGER = 0
+
+        # trial_cfg.TRAIN.EPOCH_START_USE_REFINER = 0
+        # trial_cfg.TRAIN.EPOCH_START_USE_MERGER = 0
 
         # Set unique output directory
         log_dir = os.path.join(trial_cfg.DIR.OUT_PATH, f'trial_{trial.number}_{dt.now().strftime("%Y%m%d_%H%M%S")}')
