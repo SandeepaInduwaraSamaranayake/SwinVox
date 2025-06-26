@@ -40,12 +40,17 @@ def optuna_tune(cfg):
     # Ensure output directory exists
     os.makedirs(cfg.DIR.OUT_PATH, exist_ok=True)
 
+    # Define a shared log file for all trial results
+    all_trials_log_file = os.path.join(cfg.DIR.OUT_PATH, 'optuna_trial_results.txt')
+
     def objective(trial):
         """Optuna objective function."""
         # Deep copy the config
         trial_cfg = copy.deepcopy(cfg)
 
-        # selected hyperparameters
+        ##############################################################################################
+        ##############################################################################################
+        #################################selected hyperparameters#####################################
         config_params = {
             'BATCH_SIZE': trial.suggest_categorical('BATCH_SIZE', [32, 64]),
 
@@ -69,7 +74,18 @@ def optuna_tune(cfg):
             'NOISE_STD': trial.suggest_float('NOISE_STD', 0.01, 0.1),
 
             'WEIGHT_DECAY': trial.suggest_float('WEIGHT_DECAY', 1e-6, 1e-3, log=True),
+
+            'USE_SWIN_T_MULTI_STAGE': trial.suggest_categorical('USE_SWIN_T_MULTI_STAGE', [True, False]),
+            'SWIN_T_STAGES':  trial.suggest_categorical('SWIN_T_STAGES', [[0,1,2,3],[1,2,3],[2,3],[3]]),
+            'USE_CROSS_VIEW_ATTENTION': trial.suggest_categorical('USE_CROSS_VIEW_ATTENTION', [True, False]),
+
+            'CROSS_ATT_REDUCTION_RATIO': trial.suggest_categorical('CROSS_ATT_REDUCTION_RATIO', [4, 8]),
+            'ATT_SPATIAL_DOWNSAMPLE_RATIO': trial.suggest_categorical('ATT_SPATIAL_DOWNSAMPLE_RATIO', [2, 4]),
+            'CROSS_ATT_NUM_HEADS': trial.suggest_categorical('CROSS_ATT_NUM_HEADS', [4, 8]),
         }
+        ##############################################################################################
+        ##############################################################################################
+        ##############################################################################################
 
         # Update trial config
         trial_cfg.CONST.BATCH_SIZE = config_params['BATCH_SIZE']
@@ -93,8 +109,18 @@ def optuna_tune(cfg):
         trial_cfg.TRAIN.NOISE_STD = config_params['NOISE_STD']
 
         trial_cfg.TRAIN.WEIGHT_DECAY = config_params['WEIGHT_DECAY']
+
+        trial_cfg.NETWORK.USE_SWIN_T_MULTI_STAGE = config_params['USE_SWIN_T_MULTI_STAGE']
+        trial_cfg.NETWORK.SWIN_T_STAGES = config_params['SWIN_T_STAGES']
+        trial_cfg.NETWORK.USE_CROSS_VIEW_ATTENTION = config_params['USE_CROSS_VIEW_ATTENTION']
+        trial_cfg.NETWORK.CROSS_ATT_REDUCTION_RATIO = config_params['CROSS_ATT_REDUCTION_RATIO']
+        trial_cfg.NETWORK.ATT_SPATIAL_DOWNSAMPLE_RATIO = config_params['ATT_SPATIAL_DOWNSAMPLE_RATIO']
+        trial_cfg.NETWORK.CROSS_ATT_NUM_HEADS = config_params['CROSS_ATT_NUM_HEADS']
+
+        ##############################################################################################
+        ##############################################################################################
         
-        trial_cfg.TRAIN.NUM_EPOCHS = 5  # Short trials
+        trial_cfg.TRAIN.NUM_EPOCHS = 20  # Short trials
         trial_cfg.TRAIN.ENCODER_LR_MILESTONES = [3]
         trial_cfg.TRAIN.DECODER_LR_MILESTONES = [3]
         trial_cfg.TRAIN.MERGER_LR_MILESTONES = [3]
@@ -102,6 +128,9 @@ def optuna_tune(cfg):
 
         # trial_cfg.TRAIN.EPOCH_START_USE_REFINER = 0
         # trial_cfg.TRAIN.EPOCH_START_USE_MERGER = 0
+
+        ##############################################################################################
+        ##############################################################################################
 
         # Set unique output directory
         log_dir = os.path.join(trial_cfg.DIR.OUT_PATH, f'trial_{trial.number}_{dt.now().strftime("%Y%m%d_%H%M%S")}')
@@ -330,16 +359,43 @@ def optuna_tune(cfg):
             trial.report(iou, epoch_idx)
             if trial.should_prune():
                 logging.info(f"Trial {trial.number} pruned at epoch {epoch_idx+1}, IoU={iou:.4f}")
+                # Log pruned trial to the shared file before raising TrialPruned
+                with open(all_trials_log_file, 'a') as f_log:
+                    f_log.write(f"--- Pruned Trial {trial.number} ---\n")
+                    f_log.write(f"IoU: {iou:.4f} (pruned at epoch {epoch_idx+1})\n")
+                    f_log.write("Parameters:\n")
+                    for k, v in trial.params.items():
+                        f_log.write(f"  {k}: {v}\n")
+                    f_log.write("\n")
+
                 raise optuna.TrialPruned()
 
             # Early stopping
             if iou < 0.2 and epoch_idx >= 2:
                 logging.info(f"Trial {trial.number} early stopped at epoch {epoch_idx+1}, IoU={iou:.4f}")
+                 # Log early stopped trial to the shared file
+                with open(all_trials_log_file, 'a') as f_log:
+                    f_log.write(f"--- Early Stopped Trial {trial.number} ---\n")
+                    f_log.write(f"IoU: {iou:.4f} (early stopped at epoch {epoch_idx+1})\n")
+                    f_log.write("Parameters:\n")
+                    for k, v in trial.params.items():
+                        f_log.write(f"  {k}: {v}\n")
+                    f_log.write("\n")
+                # Break out of the epoch loop for this trial
                 break
 
             best_iou = max(best_iou, iou)
 
         val_writer.close()
+
+        # Log completed trial to the shared file
+        with open(all_trials_log_file, 'a') as f_log:
+            f_log.write(f"--- Completed Trial {trial.number} ---\n")
+            f_log.write(f"Final IoU: {best_iou:.4f}\n")
+            f_log.write("Parameters:\n")
+            for k, v in trial.params.items():
+                f_log.write(f"  {k}: {v}\n")
+            f_log.write("\n")
 
         # Cleanup
         if best_iou < 0.2:
@@ -350,8 +406,12 @@ def optuna_tune(cfg):
     # Create study
     study = optuna.create_study(direction='maximize', pruner=optuna.pruners.MedianPruner())
     
+    ##############################################################################################
+    ##############################################################################################
     # Optimize
-    n_trials = 10
+    n_trials = 50
+    ##############################################################################################
+    ##############################################################################################
     logging.info(f"Starting Optuna study with {n_trials} trials")
     study.optimize(objective, n_trials=n_trials, timeout=7200)
 

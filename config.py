@@ -14,7 +14,7 @@ cfg                                         = __C
 __C.DATASETS                                = edict()
 __C.DATASETS.SHAPENET                       = edict()
 
-# __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet.json'                                                                                  # for colab original json file
+#__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet.json'                                                                                  # for colab original json file
 #__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet_aeroplane_category.json'                                                                # for colab test json file
 __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet_aeroplane_category.json'                                          # for kaggle airplane
 #__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet.json'                                                              # for kaggle full
@@ -29,16 +29,16 @@ __C.DATASETS.SHAPENET.RENDERING_PATH        = '/kaggle/input/shapenet/ShapeNetRe
 #__C.DATASETS.SHAPENET.VOXEL_PATH            = '/content/ShapeNetVox32/%s/%s/model.binvox'                                                                   # for colab
 __C.DATASETS.SHAPENET.VOXEL_PATH            = '/kaggle/input/shapenet/ShapeNetVox32/ShapeNetVox32/%s/%s/model.binvox'                                        # for kaggle
 
-__C.DATASETS.PASCAL3D                       = edict()
-__C.DATASETS.PASCAL3D.TAXONOMY_FILE_PATH    = './datasets/Pascal3D.json'
-__C.DATASETS.PASCAL3D.ANNOTATION_PATH       = '/home/hzxie/Datasets/PASCAL3D/Annotations/%s_imagenet/%s.mat'
-__C.DATASETS.PASCAL3D.RENDERING_PATH        = '/home/hzxie/Datasets/PASCAL3D/Images/%s_imagenet/%s.JPEG'
-__C.DATASETS.PASCAL3D.VOXEL_PATH            = '/home/hzxie/Datasets/PASCAL3D/CAD/%s/%02d.binvox'
-__C.DATASETS.PIX3D                          = edict()
-__C.DATASETS.PIX3D.TAXONOMY_FILE_PATH       = './datasets/Pix3D.json'
-__C.DATASETS.PIX3D.ANNOTATION_PATH          = '/content/pix3d.json'
-__C.DATASETS.PIX3D.RENDERING_PATH           = '/content/img/%s/%s.%s'
-__C.DATASETS.PIX3D.VOXEL_PATH               = '/content/model/%s/%s/%s.binvox'
+# __C.DATASETS.PASCAL3D                       = edict()
+# __C.DATASETS.PASCAL3D.TAXONOMY_FILE_PATH    = './datasets/Pascal3D.json'
+# __C.DATASETS.PASCAL3D.ANNOTATION_PATH       = '/home/hzxie/Datasets/PASCAL3D/Annotations/%s_imagenet/%s.mat'
+# __C.DATASETS.PASCAL3D.RENDERING_PATH        = '/home/hzxie/Datasets/PASCAL3D/Images/%s_imagenet/%s.JPEG'
+# __C.DATASETS.PASCAL3D.VOXEL_PATH            = '/home/hzxie/Datasets/PASCAL3D/CAD/%s/%02d.binvox'
+# __C.DATASETS.PIX3D                          = edict()
+# __C.DATASETS.PIX3D.TAXONOMY_FILE_PATH       = './datasets/Pix3D.json'
+# __C.DATASETS.PIX3D.ANNOTATION_PATH          = '/content/pix3d.json'
+# __C.DATASETS.PIX3D.RENDERING_PATH           = '/content/img/%s/%s.%s'
+# __C.DATASETS.PIX3D.VOXEL_PATH               = '/content/model/%s/%s/%s.binvox'
 
 
 #
@@ -65,7 +65,7 @@ __C.CONST.BATCH_SIZE                        = 64        # default is 64.
 __C.CONST.N_VIEWS_RENDERING                 = 1         
 __C.CONST.CROP_IMG_W                        = 128       
 __C.CONST.CROP_IMG_H                        = 128       
-__C.CONST.NUM_WORKER                        = 4         # number of data workers -- suggested max is 2, but already initialized 4 as default.
+__C.CONST.NUM_WORKER                        = 16         # number of data workers -- suggested max is 2, but already initialized 4 as default.
 __C.CONST.WEIGHTS                           = '/content/drive/MyDrive/Colab Git Clones/SwinVox/SwinVox/output/checkpoints/2025-06-13T16:07:22.579164/checkpoint-best.pth'   # if training is resuming, uncomment this replace 'path' with weight path.
 
 
@@ -118,7 +118,8 @@ __C.TRAIN.REFINER_LR_MILESTONES             = [150]
 __C.TRAIN.MERGER_LR_MILESTONES              = [150]
 __C.TRAIN.BETAS                             = (.9, .999)
 __C.TRAIN.MOMENTUM                          = .9
-__C.TRAIN.GAMMA                             = .5
+__C.TRAIN.GAMMA                             = .5 
+__C.TRAIN.WEIGHT_DECAY                      = 1e-6          # L2 regularization
 __C.TRAIN.SAVE_FREQ                         = 10            # weights will be overwritten every save_freq epoch
 __C.TRAIN.UPDATE_N_VIEWS_RENDERING          = False
 
@@ -132,7 +133,7 @@ __C.TEST.VOXEL_THRESH                       = [.2, .3, .4, .5]
 
 
 #
-# Lr_Finder Options
+# Testing (Lr_Finder Options)
 #
 __C.LR_FINDER                               = edict()
 __C.LR_FINDER.START_LR                      = 1e-7

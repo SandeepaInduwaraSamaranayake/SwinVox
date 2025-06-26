@@ -70,10 +70,6 @@ def main():
         if not args.test:
             cfg.TRAIN.RESUME_TRAIN = True
 
-    # Print config
-    print('Use config:')
-    pprint(cfg)
-
     # Set GPU to use
     if type(cfg.CONST.DEVICE) == str:
         os.environ["CUDA_VISIBLE_DEVICES"] = cfg.CONST.DEVICE
@@ -87,6 +83,10 @@ def main():
         optuna_tune(cfg)
         logging.info('Then run normal training with updated config_best.py.')
         sys.exit(0)
+
+    # Print config
+    print('Use config:')
+    pprint(cfg)
 
     # Start train/test process
     if not args.test:

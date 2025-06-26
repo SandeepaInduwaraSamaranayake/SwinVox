@@ -91,29 +91,37 @@ def train_net(cfg):
     if cfg.TRAIN.POLICY == 'adam':
         encoder_solver = torch.optim.Adam(filter(lambda p: p.requires_grad, encoder.parameters()),
                                           lr=cfg.TRAIN.ENCODER_LEARNING_RATE,
-                                          betas=cfg.TRAIN.BETAS)
+                                          betas=cfg.TRAIN.BETAS,
+                                          weight_decay=cfg.TRAIN.WEIGHT_DECAY)
         decoder_solver = torch.optim.Adam(decoder.parameters(),
                                           lr=cfg.TRAIN.DECODER_LEARNING_RATE,
-                                          betas=cfg.TRAIN.BETAS)
+                                          betas=cfg.TRAIN.BETAS,
+                                          weight_decay=cfg.TRAIN.WEIGHT_DECAY)
         refiner_solver = torch.optim.Adam(refiner.parameters(),
                                           lr=cfg.TRAIN.REFINER_LEARNING_RATE,
-                                          betas=cfg.TRAIN.BETAS)
+                                          betas=cfg.TRAIN.BETAS,
+                                          weight_decay=cfg.TRAIN.WEIGHT_DECAY)
         merger_solver = torch.optim.Adam(merger.parameters(),
                                           lr=cfg.TRAIN.MERGER_LEARNING_RATE,
-                                          betas=cfg.TRAIN.BETAS)
+                                          betas=cfg.TRAIN.BETAS,
+                                          weight_decay=cfg.TRAIN.WEIGHT_DECAY)
     elif cfg.TRAIN.POLICY == 'sgd':
         encoder_solver = torch.optim.SGD(filter(lambda p: p.requires_grad, encoder.parameters()),
                                           lr=cfg.TRAIN.ENCODER_LEARNING_RATE,
-                                          momentum=cfg.TRAIN.MOMENTUM)
+                                          momentum=cfg.TRAIN.MOMENTUM,
+                                          weight_decay=cfg.TRAIN.WEIGHT_DECAY)
         decoder_solver = torch.optim.SGD(decoder.parameters(),
                                           lr=cfg.TRAIN.DECODER_LEARNING_RATE,
-                                          momentum=cfg.TRAIN.MOMENTUM)
+                                          momentum=cfg.TRAIN.MOMENTUM,
+                                          weight_decay=cfg.TRAIN.WEIGHT_DECAY)
         refiner_solver = torch.optim.SGD(refiner.parameters(),
                                           lr=cfg.TRAIN.REFINER_LEARNING_RATE,
-                                          momentum=cfg.TRAIN.MOMENTUM)
+                                          momentum=cfg.TRAIN.MOMENTUM,
+                                          weight_decay=cfg.TRAIN.WEIGHT_DECAY)
         merger_solver = torch.optim.SGD(merger.parameters(),
                                           lr=cfg.TRAIN.MERGER_LEARNING_RATE,
-                                          momentum=cfg.TRAIN.MOMENTUM)
+                                          momentum=cfg.TRAIN.MOMENTUM,
+                                          weight_decay=cfg.TRAIN.WEIGHT_DECAY)
     else:
         raise Exception('[FATAL] %s Unknown optimizer %s.' % (dt.now(), cfg.TRAIN.POLICY))
 
