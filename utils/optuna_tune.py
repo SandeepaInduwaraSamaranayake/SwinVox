@@ -76,7 +76,7 @@ def optuna_tune(cfg):
             'WEIGHT_DECAY': trial.suggest_float('WEIGHT_DECAY', 1e-6, 1e-3, log=True),
 
             'USE_SWIN_T_MULTI_STAGE': trial.suggest_categorical('USE_SWIN_T_MULTI_STAGE', [True, False]),
-            'SWIN_T_STAGES':  trial.suggest_categorical('SWIN_T_STAGES', [(0,1,2,3),(1,2,3),(2,3),(3)]),
+            'SWIN_T_STAGES':  trial.suggest_categorical('SWIN_T_STAGES', [[0,1,2,3],[1,2,3],[2,3],[3]]),
             'USE_CROSS_VIEW_ATTENTION': trial.suggest_categorical('USE_CROSS_VIEW_ATTENTION', [True, False]),
 
             'CROSS_ATT_REDUCTION_RATIO': trial.suggest_categorical('CROSS_ATT_REDUCTION_RATIO', [2,4,8]),
