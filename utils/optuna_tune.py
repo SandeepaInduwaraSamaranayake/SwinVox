@@ -79,9 +79,9 @@ def optuna_tune(cfg):
             'SWIN_T_STAGES':  trial.suggest_categorical('SWIN_T_STAGES', [[0,1,2,3],[1,2,3],[2,3],[3]]),
             'USE_CROSS_VIEW_ATTENTION': trial.suggest_categorical('USE_CROSS_VIEW_ATTENTION', [True, False]),
 
-            'CROSS_ATT_REDUCTION_RATIO': trial.suggest_categorical('CROSS_ATT_REDUCTION_RATIO', [4, 8]),
-            'ATT_SPATIAL_DOWNSAMPLE_RATIO': trial.suggest_categorical('ATT_SPATIAL_DOWNSAMPLE_RATIO', [2, 4]),
-            'CROSS_ATT_NUM_HEADS': trial.suggest_categorical('CROSS_ATT_NUM_HEADS', [4, 8]),
+            'CROSS_ATT_REDUCTION_RATIO': trial.suggest_categorical('CROSS_ATT_REDUCTION_RATIO', [2,4,8]),
+            'ATT_SPATIAL_DOWNSAMPLE_RATIO': trial.suggest_categorical('ATT_SPATIAL_DOWNSAMPLE_RATIO', [2,4]),
+            'CROSS_ATT_NUM_HEADS': trial.suggest_categorical('CROSS_ATT_NUM_HEADS', [2,4,8]),
         }
         ##############################################################################################
         ##############################################################################################
