@@ -415,7 +415,7 @@ def optuna_tune(cfg):
     study = optuna.create_study(direction='maximize', pruner=optuna.pruners.MedianPruner())
     
     logging.info(f"Starting Optuna study with {n_trials} trials")
-    study.optimize(objective, n_trials=n_trials, timeout=7200)
+    study.optimize(objective, n_trials = n_trials, timeout = timeout)
 
     # Log best trial
     best_trial = study.best_trial
