@@ -15,7 +15,7 @@ We use the [ShapeNet](https://www.shapenet.org/) dataset in our experiments, whi
 ### Archieved (Alternative)
 - [ShapeNet rendering images & voxelized models](https://www.kaggle.com/api/v1/datasets/download/sirish001/shapenet-3dr2n2)
 
-### Separate Rendering images & voxelized models (Alternative)
+### Separate Rendering images & voxelized models (Extracted | Alternative)
 - [ShapeNet rendering images](https://www.kaggle.com/api/v1/datasets/download/ronak555/shapenetcorerendering-part1)
 - [ShapeNet voxelized models](https://www.kaggle.com/api/v1/datasets/download/ronak555/shapenetvox32)
 
