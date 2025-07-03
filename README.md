@@ -1,53 +1,42 @@
-# Pix2Vox
+# SwinVox
 
-[![codebeat badge](https://codebeat.co/badges/4ca31f8b-4b83-432d-8de8-1956ad48eeaa)](https://codebeat.co/projects/github-com-hzxie-pix2vox-master)
 
-This repository contains the source code for the paper [Pix2Vox: Context-aware 3D Reconstruction from Single and Multi-view Images](https://arxiv.org/abs/1901.11153). The follow-up work [Pix2Vox++: Multi-scale Context-aware 3D Object Reconstruction from Single and Multiple Images](https://arxiv.org/abs/2006.12250) has been published in *International Journal of Computer Vision (IJCV)*.
+This repository contains the source code for SwinVox, a novel deep learning model for reconstructing 3D voxel-based shapes from multiple 2D input images (views). Building upon the foundations of the Pix2Vox++ (https://gitlab.com/hzxie/Pix2Vox) architecture, SwinVox integrates the powerful Swin Transformer (https://github.com/microsoft/Swin-Transformer) for robust feature extraction and introduces an optional  Cross-View Attention mechanism to enhance the fusion of multi-view information. This project aims to improve the fidelity and detail of 3D reconstructions, particularly in complex scenarios.
 
-![Overview](https://www.infinitescript.com/projects/Pix2Vox/Pix2Vox-Overview.jpg)
-
-## Cite this work
-
-```
-@inproceedings{xie2019pix2vox,
-  title={Pix2Vox: Context-aware 3D Reconstruction from Single and Multi-view Images},
-  author={Xie, Haozhe and 
-          Yao, Hongxun and 
-          Sun, Xiaoshuai and 
-          Zhou, Shangchen and 
-          Zhang, Shengping},
-  booktitle={ICCV},
-  year={2019}
-}
-```
+![Algorithm_Design drawio](https://github.com/user-attachments/assets/e102be2a-d767-4719-bc4d-d979595e4186)
 
 ## Datasets
 
-We use the [ShapeNet](https://www.shapenet.org/) and [Pix3D](http://pix3d.csail.mit.edu/) datasets in our experiments, which are available below:
+We use the [ShapeNet](https://www.shapenet.org/) dataset in our experiments, which are available below:
 
-- ShapeNet rendering images: http://cvgl.stanford.edu/data2/ShapeNetRendering.tgz
-- ShapeNet voxelized models: http://cvgl.stanford.edu/data2/ShapeNetVox32.tgz
-- Pix3D images & voxelized models: http://pix3d.csail.mit.edu/data/pix3d.zip
+### Archieved
+- ShapeNet rendering & voxelized: https://www.kaggle.com/api/v1/datasets/download/sirish001/shapenet-3dr2n2
+
+### Rendering & voxelized
+- ShapeNet rendering images: https://www.kaggle.com/api/v1/datasets/download/ronak555/shapenetcorerendering-part1
+- ShapeNet voxelized models: https://www.kaggle.com/api/v1/datasets/download/ronak555/shapenetvox32
+
+### Extracted (Recommended)
+- ShapeNet rendering & voxelized: https://www.kaggle.com/api/v1/datasets/download/gabrielescognamiglio/shapenet
 
 ## Pretrained Models
 
 The pretrained models on ShapeNet are available as follows:
 
-- [Pix2Vox-A](https://gateway.infinitescript.com/?fileName=Pix2Vox-A-ShapeNet.pth) (457.0 MB)
-- [Pix2Vox-F](https://gateway.infinitescript.com/?fileName=Pix2Vox-F-ShapeNet.pth) (29.8 MB)
+- [SwinVox-A](https://gateway.infinitescript.com/?fileName=Pix2Vox-A-ShapeNet.pth) (457.0 MB)
 
 ## Prerequisites
 
 #### Clone the Code Repository
 
 ```
-git clone https://github.com/hzxie/Pix2Vox.git
+git clone https://github.com/SandeepaInduwaraSamaranayake/SwinVox.git
 ```
 
 #### Install Python Denpendencies
 
 ```
-cd Pix2Vox
+cd SwinVox
 pip install -r requirements.txt
 ```
 
@@ -68,22 +57,16 @@ __C.DATASETS.PIX3D.VOXEL_PATH               = '/path/to/Datasets/Pix3D/model/%s/
 
 ## Get Started
 
-To train Pix2Vox, you can simply use the following command:
+To train SwinVox, you can simply use the following command:
 
 ```
 python3 runner.py
 ```
 
-To test Pix2Vox, you can use the following command:
+To test SwinVox, you can use the following command:
 
 ```
 python3 runner.py --test --weights=/path/to/pretrained/model.pth
-```
-
-If you want to train/test Pix2Vox-F, you need to checkout to `Pix2Vox-F` branch first.
-
-```
-git checkout -b Pix2Vox-F origin/Pix2Vox-F
 ```
 
 ## License
