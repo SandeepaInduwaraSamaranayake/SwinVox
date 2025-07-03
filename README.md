@@ -9,15 +9,17 @@ This repository contains the source code for SwinVox, a novel deep learning mode
 
 We use the [ShapeNet](https://www.shapenet.org/) dataset in our experiments, which are available below:
 
-### Archieved
-- ShapeNet rendering & voxelized: https://www.kaggle.com/api/v1/datasets/download/sirish001/shapenet-3dr2n2
-
-### Rendering & voxelized
-- ShapeNet rendering images: https://www.kaggle.com/api/v1/datasets/download/ronak555/shapenetcorerendering-part1
-- ShapeNet voxelized models: https://www.kaggle.com/api/v1/datasets/download/ronak555/shapenetvox32
-
 ### Extracted (Recommended)
-- ShapeNet rendering & voxelized: https://www.kaggle.com/api/v1/datasets/download/gabrielescognamiglio/shapenet
+- [ShapeNet rendering images & voxelized models](https://www.kaggle.com/api/v1/datasets/download/gabrielescognamiglio/shapenet)
+
+### Archieved (Alternative)
+- [ShapeNet rendering images & voxelized models](https://www.kaggle.com/api/v1/datasets/download/sirish001/shapenet-3dr2n2)
+
+### Separate Rendering images & voxelized models (Alternative)
+- [ShapeNet rendering images](https://www.kaggle.com/api/v1/datasets/download/ronak555/shapenetcorerendering-part1)
+- [ShapeNet voxelized models](https://www.kaggle.com/api/v1/datasets/download/ronak555/shapenetvox32)
+
+
 
 ## Pretrained Models
 
