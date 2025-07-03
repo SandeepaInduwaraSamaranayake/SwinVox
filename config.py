@@ -16,8 +16,8 @@ __C.DATASETS.SHAPENET                       = edict()
 
 #__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet.json'                                                                                  # for colab original json file
 #__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = './datasets/ShapeNet_aeroplane_category.json'                                                                # for colab test json file
-__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet_aeroplane_category.json'                                          # for kaggle airplane
-#__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet.json'                                                              # for kaggle full
+#__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet_aeroplane_category.json'                                          # for kaggle airplane
+__C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH    = '/kaggle/working/SwinVox/datasets/ShapeNet.json'                                                              # for kaggle full
 
 # __C.DATASETS.SHAPENET.TAXONOMY_FILE_PATH  = './datasets/PascalShapeNet.json'
 
@@ -65,7 +65,7 @@ __C.CONST.BATCH_SIZE                        = 64        # default is 64.
 __C.CONST.N_VIEWS_RENDERING                 = 1         
 __C.CONST.CROP_IMG_W                        = 128       
 __C.CONST.CROP_IMG_H                        = 128       
-__C.CONST.NUM_WORKER                        = 16         # number of data workers -- suggested max is 2, but already initialized 4 as default.
+__C.CONST.NUM_WORKER                        = 20         # number of data workers -- suggested max is 2, but already initialized 4 as default.
 __C.CONST.WEIGHTS                           = '/content/drive/MyDrive/Colab Git Clones/SwinVox/SwinVox/output/checkpoints/2025-06-13T16:07:22.579164/checkpoint-best.pth'   # if training is resuming, uncomment this replace 'path' with weight path.
 
 
