@@ -1,3 +1,5 @@
 Pre-Trained-Models/*
 output/*
 __pycache__/*
+.style.yapf
+.yapfignore
