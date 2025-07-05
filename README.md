@@ -1,4 +1,4 @@
-[![CodeFactor](https://www.codefactor.io/repository/github/sandeepainduwarasamaranayake/swinvox_web_app/badge)](https://www.codefactor.io/repository/github/sandeepainduwarasamaranayake/swinvox_web_app)
+[![CodeFactor](https://www.codefactor.io/repository/github/sandeepainduwarasamaranayake/swinvox/badge)](https://www.codefactor.io/repository/github/sandeepainduwarasamaranayake/swinvox)
 
 # SwinVox
 
