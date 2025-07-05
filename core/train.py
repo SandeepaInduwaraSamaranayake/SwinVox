@@ -75,7 +75,7 @@ def train_net(cfg):
     encoder = Encoder(cfg)
     decoder = Decoder(cfg)
     refiner = Refiner(cfg)
-    merger  = Merger(cfg)
+    merger = Merger(cfg)
     logging.info(f'Parameters in Encoder: {utils.helpers.count_parameters(encoder)}.')
     logging.info(f'Parameters in Decoder: {utils.helpers.count_parameters(decoder)}.')
     logging.info(f'Parameters in Refiner: {utils.helpers.count_parameters(refiner)}.')

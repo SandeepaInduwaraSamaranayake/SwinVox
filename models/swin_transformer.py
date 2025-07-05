@@ -51,7 +51,7 @@ class SwinTransformer(nn.Module):
 
         # Output channels and spatial dims
         self.out_channels = [self.model.feature_info.channels()[i] for i in range(len(self.cfg.NETWORK.SWIN_T_STAGES))]
-        self.out_spatial  = [self.img_size // (4 * 2**i) for i in self.cfg.NETWORK.SWIN_T_STAGES]  # e.g., stage 3: 14, stage 4: 7
+        self.out_spatial = [self.img_size // (4 * 2**i) for i in self.cfg.NETWORK.SWIN_T_STAGES]  # e.g., stage 3: 14, stage 4: 7
 
         # Layer normalization for each stage
         self.layer_norm = nn.ModuleList([
