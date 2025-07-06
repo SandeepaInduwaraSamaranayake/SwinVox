@@ -98,32 +98,32 @@ def optuna_tune(cfg):
         # Update trial config
         trial_cfg.CONST.BATCH_SIZE = config_params['BATCH_SIZE']
 
-        trial_cfg.TRAIN.ENCODER_LEARNING_RATE = config_params['ENCODER_LR']
-        trial_cfg.TRAIN.DECODER_LEARNING_RATE = config_params['DECODER_LR']
-        trial_cfg.TRAIN.MERGER_LEARNING_RATE = config_params['MERGER_LR']
-        trial_cfg.TRAIN.REFINER_LEARNING_RATE = config_params['REFINER_LR']
+        # trial_cfg.TRAIN.ENCODER_LEARNING_RATE = config_params['ENCODER_LR']
+        # trial_cfg.TRAIN.DECODER_LEARNING_RATE = config_params['DECODER_LR']
+        # trial_cfg.TRAIN.MERGER_LEARNING_RATE = config_params['MERGER_LR']
+        # trial_cfg.TRAIN.REFINER_LEARNING_RATE = config_params['REFINER_LR']
 
-        trial_cfg.TRAIN.GAMMA = config_params['GAMMA']
+        # trial_cfg.TRAIN.GAMMA = config_params['GAMMA']
 
-        # trial_cfg.NETWORK.USE_MERGER = config_params['USE_MERGER']
-        # trial_cfg.NETWORK.USE_REFINER = config_params['USE_REFINER']
+        # # trial_cfg.NETWORK.USE_MERGER = config_params['USE_MERGER']
+        # # trial_cfg.NETWORK.USE_REFINER = config_params['USE_REFINER']
 
-        trial_cfg.TRAIN.POLICY = config_params['POLICY']
-        trial_cfg.TRAIN.BETAS = (config_params['BETA1'], config_params['BETA2'])
+        # trial_cfg.TRAIN.POLICY = config_params['POLICY']
+        # trial_cfg.TRAIN.BETAS = (config_params['BETA1'], config_params['BETA2'])
 
-        trial_cfg.TRAIN.BRIGHTNESS = config_params['BRIGHTNESS']
-        trial_cfg.TRAIN.CONTRAST = config_params['CONTRAST']
-        trial_cfg.TRAIN.SATURATION = config_params['SATURATION']
-        trial_cfg.TRAIN.NOISE_STD = config_params['NOISE_STD']
+        # trial_cfg.TRAIN.BRIGHTNESS = config_params['BRIGHTNESS']
+        # trial_cfg.TRAIN.CONTRAST = config_params['CONTRAST']
+        # trial_cfg.TRAIN.SATURATION = config_params['SATURATION']
+        # trial_cfg.TRAIN.NOISE_STD = config_params['NOISE_STD']
 
-        trial_cfg.TRAIN.WEIGHT_DECAY = config_params['WEIGHT_DECAY']
+        # trial_cfg.TRAIN.WEIGHT_DECAY = config_params['WEIGHT_DECAY']
 
-        trial_cfg.NETWORK.USE_SWIN_T_MULTI_STAGE = config_params['USE_SWIN_T_MULTI_STAGE']
-        trial_cfg.NETWORK.SWIN_T_STAGES = config_params['SWIN_T_STAGES']
-        trial_cfg.NETWORK.USE_CROSS_VIEW_ATTENTION = config_params['USE_CROSS_VIEW_ATTENTION']
-        trial_cfg.NETWORK.CROSS_ATT_REDUCTION_RATIO = config_params['CROSS_ATT_REDUCTION_RATIO']
-        trial_cfg.NETWORK.ATT_SPATIAL_DOWNSAMPLE_RATIO = config_params['ATT_SPATIAL_DOWNSAMPLE_RATIO']
-        trial_cfg.NETWORK.CROSS_ATT_NUM_HEADS = config_params['CROSS_ATT_NUM_HEADS']
+        # trial_cfg.NETWORK.USE_SWIN_T_MULTI_STAGE = config_params['USE_SWIN_T_MULTI_STAGE']
+        # trial_cfg.NETWORK.SWIN_T_STAGES = config_params['SWIN_T_STAGES']
+        # trial_cfg.NETWORK.USE_CROSS_VIEW_ATTENTION = config_params['USE_CROSS_VIEW_ATTENTION']
+        # trial_cfg.NETWORK.CROSS_ATT_REDUCTION_RATIO = config_params['CROSS_ATT_REDUCTION_RATIO']
+        # trial_cfg.NETWORK.ATT_SPATIAL_DOWNSAMPLE_RATIO = config_params['ATT_SPATIAL_DOWNSAMPLE_RATIO']
+        # trial_cfg.NETWORK.CROSS_ATT_NUM_HEADS = config_params['CROSS_ATT_NUM_HEADS']
 
         ##############################################################################################
         ##############################################################################################
