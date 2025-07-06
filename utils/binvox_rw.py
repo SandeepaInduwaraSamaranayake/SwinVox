@@ -61,7 +61,8 @@ True
 """
 
 import numpy as np
-
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 class Voxels(object):
     """ Holds a binvox model.
@@ -141,7 +142,7 @@ def read_as_3d_array(fp, fix_coords=True):
     # j -> y
     # k -> z
     values, counts = raw_data[::2], raw_data[1::2]
-    data = np.repeat(values, counts).astype(np.int32)
+    data = np.repeat(values, counts).astype(bool) # np.bool -> bool
     data = data.reshape(dims)
     if fix_coords:
         # xzy to xyz TODO the right thing
@@ -289,6 +290,57 @@ def write(voxel_model, fp):
     if ctr > 0:
         fp.write(chr(state).encode('latin-1'))
         fp.write(chr(ctr).encode('latin-1'))
+
+# Use save_voxel_image_3d as below
+####################### main.py ##############################
+# from binvox_rw import read_as_3d_array, save_voxel_image_3d
+
+# # Read .binvox file
+# with open('/content/mug_1.binvox', 'rb') as f:
+#     voxels = read_as_3d_array(f)
+
+# # Save as image
+# save_voxel_image_3d(voxels, 'chair_projection.png')
+##############################################################
+
+def save_voxel_image_3d(voxels, filename, figsize=(12, 12), dpi=150):
+    """
+    Save 3D voxel data as a clear 3D visualization with visible edges.
+    
+    Args:
+        voxels (Voxels): A Voxels object from binvox_rw
+        filename (str): Output image filename (e.g., 'output.png')
+        figsize (tuple): Figure size in inches
+        dpi (int): Image resolution
+    """
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111, projection='3d', proj_type='ortho')
+    
+    # Set edge colors and face colors
+    edge_color = "#444444"
+    face_color = "#1f77b488"  # Semi-transparent blue
+    
+    # Plot voxels with edges
+    ax.voxels(
+        voxels.data,
+        edgecolor=edge_color,
+        facecolors=face_color,
+        linewidth=1
+    )
+    
+    # Equal aspect ratio
+    ax.set_box_aspect([1, 1, 1])
+    
+    # Set viewing angles
+    ax.view_init(elev=30, azim=45)
+    
+    # Hide axes
+    ax.set_axis_off()
+    
+    # Tight layout and save
+    plt.tight_layout()
+    plt.savefig(filename, dpi=dpi, bbox_inches='tight')
+    plt.close()
 
 
 if __name__ == '__main__':

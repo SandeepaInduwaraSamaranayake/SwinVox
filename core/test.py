@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Developed by Haozhe Xie <cshzxie@gmail.com>
+# Modified  by Sandeepa Samaranayake <sandeepasamaranayake@outlook.com>
 
 import json
 import numpy as np
@@ -19,7 +20,6 @@ from models.decoder import Decoder
 from models.refiner import Refiner
 from models.merger import Merger
 from utils.average_meter import AverageMeter
-
 
 def test_net(cfg,
              epoch_idx=-1,
@@ -72,7 +72,7 @@ def test_net(cfg,
             refiner = torch.nn.DataParallel(refiner).cuda()
             merger = torch.nn.DataParallel(merger).cuda()
 
-        logging.info('Loading weights from %s ...' % (cfg.CONST.WEIGHTS))
+        logging.info(f'Loading weights from {cfg.CONST.WEIGHTS} ...')
         checkpoint = torch.load(cfg.CONST.WEIGHTS)
         epoch_idx = checkpoint['epoch_idx']
         encoder.load_state_dict(checkpoint['encoder_state_dict'])
@@ -84,11 +84,12 @@ def test_net(cfg,
             merger.load_state_dict(checkpoint['merger_state_dict'])
 
     # Set up loss functions
-    bce_loss = torch.nn.BCELoss()
+    bce_loss = torch.nn.BCEWithLogitsLoss()
 
     # Testing loop
     n_samples = len(test_data_loader)
     test_iou = dict()
+    test_fscore = dict()
     encoder_losses = AverageMeter()
     refiner_losses = AverageMeter()
 
@@ -127,13 +128,30 @@ def test_net(cfg,
             encoder_losses.update(encoder_loss.item())
             refiner_losses.update(refiner_loss.item())
 
-            # IoU per sample
+            # Apply sigmoid to generated_volume BEFORE calculating IoU and F-score
+            generated_volume_prob = torch.sigmoid(generated_volume)
+
+            # IoU and F-score per sample
             sample_iou = []
+            sample_fscore = []
             for th in cfg.TEST.VOXEL_THRESH:
-                _volume = torch.ge(generated_volume, th).float()
+                _volume = torch.ge(generated_volume_prob, th).float()
+                # Calculate IoU
                 intersection = torch.sum(_volume.mul(ground_truth_volume)).float()
                 union = torch.sum(torch.ge(_volume.add(ground_truth_volume), 1)).float()
-                sample_iou.append((intersection / union).item())
+                # Handle edge case: if union is 0, IoU is 1.0 if intersection is also 0, else 0.0
+                sample_iou.append(1.0 if union.item() == 0 and intersection.item() == 0 else (intersection / union).item() if union.item() > 0 else 0.0)
+
+                # Calculate F-score components (TP, FP, FN)
+                tp = torch.sum(_volume * ground_truth_volume).float()        # True Positives: _volume == 1 and ground_truth_volume == 1
+                fp = torch.sum(_volume * (1 - ground_truth_volume)).float()  # False Positives: _volume == 1 and ground_truth_volume == 0
+                fn = torch.sum((1 - _volume) * ground_truth_volume).float()  # False Negatives: _volume == 0 and ground_truth_volume == 1
+                
+                # Calculate Precision and Recall with epsilon for numerical stability
+                precision = tp / (tp + fp + 1e-8)
+                recall = tp / (tp + fn + 1e-8)
+                f1 = 2 * precision * recall / (precision + recall + 1e-8)
+                sample_fscore.append(f1.item())
 
             # IoU per taxonomy
             if taxonomy_id not in test_iou:
@@ -141,59 +159,101 @@ def test_net(cfg,
             test_iou[taxonomy_id]['n_samples'] += 1
             test_iou[taxonomy_id]['iou'].append(sample_iou)
 
+            # F-score per taxonomy
+            if taxonomy_id not in test_fscore:
+                test_fscore[taxonomy_id] = {'n_samples': 0, 'fscore': []}
+            test_fscore[taxonomy_id]['n_samples'] += 1
+            test_fscore[taxonomy_id]['fscore'].append(sample_fscore)
+
             # Append generated volumes to TensorBoard
             if output_dir and test_writer and sample_idx < 3:
-                img_dir = output_dir % 'images'
-                # Volume Visualization
-                gv = utils.helpers.get_volume_views(generated_volume.cpu().numpy(), os.path.join(img_dir, 'test'), 'GV', sample_idx, epoch_idx)
-                test_writer.add_image('Model%02d/Reconstructed' % sample_idx, gv, epoch_idx)
+                img_dir = os.path.join(output_dir, 'images')
+                os.makedirs(img_dir, exist_ok=True)
+                # Volume Visualization: Use probability volume for visualization
+                gv = utils.helpers.get_volume_views(generated_volume_prob.cpu().numpy(), img_dir, 'GV', sample_idx, epoch_idx)
+                test_writer.add_image(f'Model{sample_idx:02d}/Reconstructed', gv, epoch_idx)
 
-                gt = utils.helpers.get_volume_views(ground_truth_volume.cpu().numpy(), os.path.join(img_dir, 'test'), 'GT', sample_idx, epoch_idx)
-                test_writer.add_image('Model%02d/GroundTruth' % sample_idx, gt, epoch_idx)
+                gt = utils.helpers.get_volume_views(ground_truth_volume.cpu().numpy(), img_dir, 'GT', sample_idx, epoch_idx)
+                test_writer.add_image(f'Model{sample_idx:02d}/GroundTruth', gt, epoch_idx)
 
-            # Print sample loss and IoU
-            logging.info('Test[%d/%d] Taxonomy = %s Sample = %s EDLoss = %.4f RLoss = %.4f IoU = %s' %
-                         (sample_idx + 1, n_samples, taxonomy_id, sample_name, encoder_loss.item(),
-                          refiner_loss.item(), ['%.4f' % si for si in sample_iou]))
+            # Print sample loss, IoU, and F-score
+            logging.info(f'Test[{sample_idx + 1}/{n_samples}] Taxonomy = {taxonomy_id} Sample = {sample_name} '
+                         f'EDLoss = {encoder_loss.item():.4f} RLoss = {refiner_loss.item():.4f} '
+                         f'IoU = {[f"{si:.4f}" for si in sample_iou]} F-score = {[f"{sf:.4f}" for sf in sample_fscore]}')
 
-    # Output testing results
+    # Output testing results for IoU
     mean_iou = []
     for taxonomy_id in test_iou:
         test_iou[taxonomy_id]['iou'] = np.mean(test_iou[taxonomy_id]['iou'], axis=0)
         mean_iou.append(test_iou[taxonomy_id]['iou'] * test_iou[taxonomy_id]['n_samples'])
     mean_iou = np.sum(mean_iou, axis=0) / n_samples
 
-    # Print header
-    print('============================ TEST RESULTS ============================')
+    # Output testing results for F-score
+    mean_fscore = []
+    for taxonomy_id in test_fscore:
+        test_fscore[taxonomy_id]['fscore'] = np.mean(test_fscore[taxonomy_id]['fscore'], axis=0)
+        mean_fscore.append(test_fscore[taxonomy_id]['fscore'] * test_fscore[taxonomy_id]['n_samples'])
+    mean_fscore = np.sum(mean_fscore, axis=0) / n_samples
+
+    # Print header for IoU
+    print('============================ TEST RESULTS (IoU) ============================')
     print('Taxonomy', end='\t')
     print('#Sample', end='\t')
     print('Baseline', end='\t')
     for th in cfg.TEST.VOXEL_THRESH:
-        print('t=%.2f' % th, end='\t')
+        print(f't={th:.2f}', end='\t')
     print()
-    # Print body
+    # Print body for IoU
     for taxonomy_id in test_iou:
-        print('%s' % taxonomies[taxonomy_id]['taxonomy_name'].ljust(8), end='\t')
-        print('%d' % test_iou[taxonomy_id]['n_samples'], end='\t')
+        print(f'{taxonomies[taxonomy_id]["taxonomy_name"].ljust(8)}', end='\t')
+        print(f'{test_iou[taxonomy_id]["n_samples"]}', end='\t')
         if 'baseline' in taxonomies[taxonomy_id]:
-            print('%.4f' % taxonomies[taxonomy_id]['baseline']['%d-view' % cfg.CONST.N_VIEWS_RENDERING], end='\t\t')
+            print(f'{taxonomies[taxonomy_id]["baseline"][f"{cfg.CONST.N_VIEWS_RENDERING}-view"]:.4f}', end='\t\t')
         else:
             print('N/a', end='\t\t')
 
         for ti in test_iou[taxonomy_id]['iou']:
-            print('%.4f' % ti, end='\t')
+            print(f'{ti:.4f}', end='\t')
         print()
+
     # Print mean IoU for each threshold
     print('Overall ', end='\t\t\t\t')
     for mi in mean_iou:
-        print('%.4f' % mi, end='\t')
+        print(f'{mi:.4f}', end='\t')
+    print('\n')
+
+    # Print header for F-score
+    print('========================== TEST RESULTS (F-score) ==========================')
+    print('Taxonomy', end='\t')
+    print('#Sample', end='\t')
+    print('Baseline', end='\t')
+    for th in cfg.TEST.VOXEL_THRESH:
+        print(f't={th:.2f}', end='\t')
+    print()
+    # Print body for F-score
+    for taxonomy_id in test_fscore:
+        print(f'{taxonomies[taxonomy_id]["taxonomy_name"].ljust(8)}', end='\t')
+        print(f'{test_fscore[taxonomy_id]["n_samples"]}', end='\t')
+        # No baseline for F-score
+        print('N/a', end='\t\t')
+
+        for sf in test_fscore[taxonomy_id]['fscore']:
+            print(f'{sf:.4f}', end='\t')
+        print()
+
+    # Print mean F-score for each threshold
+    print('Overall ', end='\t\t\t\t')
+    for mf in mean_fscore:
+        print(f'{mf:.4f}', end='\t')
     print('\n')
 
     # Add testing results to TensorBoard
     max_iou = np.max(mean_iou)
+    max_fscore = np.max(mean_fscore)
     if test_writer is not None:
         test_writer.add_scalar('EncoderDecoder/EpochLoss', encoder_losses.avg, epoch_idx)
         test_writer.add_scalar('Refiner/EpochLoss', refiner_losses.avg, epoch_idx)
         test_writer.add_scalar('Refiner/IoU', max_iou, epoch_idx)
+        test_writer.add_scalar('Refiner/F-score', max_fscore, epoch_idx)
 
     return max_iou
