@@ -176,9 +176,9 @@ def train_net(cfg):
         logging.info(f'Recover complete. Current epoch #{init_epoch}, Best IoU = {best_iou:.4f} at epoch #{best_epoch}.')
 
     # Summary writer for TensorBoard
-    output_dir = os.path.join(cfg.DIR.OUT_PATH, '%s', dt.now().isoformat())
-    cfg.DIR.LOGS = output_dir % 'logs'
-    cfg.DIR.CHECKPOINTS = output_dir % 'checkpoints'
+    output_dir = os.path.join(cfg.DIR.OUT_PATH, dt.now().isoformat())
+    cfg.DIR.LOGS = os.path.join(output_dir, 'logs')
+    cfg.DIR.CHECKPOINTS = os.path.join(output_dir, 'checkpoints')
     train_writer = SummaryWriter(os.path.join(cfg.DIR.LOGS, 'train'))
     val_writer = SummaryWriter(os.path.join(cfg.DIR.LOGS, 'test'))
 
