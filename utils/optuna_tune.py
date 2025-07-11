@@ -34,7 +34,7 @@ def optuna_tune(cfg):
 
     ##############################################################################################
     ################################Optimize Configuration########################################
-    n_trials = 50
+    n_trials = 3
     timeout = 72000
     ##############################################################################################
     ##############################################################################################
@@ -62,34 +62,34 @@ def optuna_tune(cfg):
         config_params = {
             'BATCH_SIZE': trial.suggest_categorical('BATCH_SIZE', [32, 64]),
 
-            'ENCODER_LR': trial.suggest_float('ENCODER_LR', 1e-7, 5e-4, log=True),
-            'DECODER_LR': trial.suggest_float('DECODER_LR', 1e-7, 5e-4, log=True),
-            'MERGER_LR': trial.suggest_float('MERGER_LR', 1e-8, 1e-3, log=True),
-            'REFINER_LR': trial.suggest_float('REFINER_LR', 1e-8, 1e-3, log=True),
+            # 'ENCODER_LR': trial.suggest_float('ENCODER_LR', 1e-7, 5e-4, log=True),
+            # 'DECODER_LR': trial.suggest_float('DECODER_LR', 1e-7, 5e-4, log=True),
+            # 'MERGER_LR': trial.suggest_float('MERGER_LR', 1e-8, 1e-3, log=True),
+            # 'REFINER_LR': trial.suggest_float('REFINER_LR', 1e-8, 1e-3, log=True),
 
-            'GAMMA': trial.suggest_float('GAMMA', 0.1, 0.9),
+            # 'GAMMA': trial.suggest_float('GAMMA', 0.1, 0.9),
 
-            # 'USE_MERGER': trial.suggest_categorical('USE_MERGER', [True, False]),
-            # 'USE_REFINER': trial.suggest_categorical('USE_REFINER', [True, False]),
+            # # 'USE_MERGER': trial.suggest_categorical('USE_MERGER', [True, False]),
+            # # 'USE_REFINER': trial.suggest_categorical('USE_REFINER', [True, False]),
 
-            'POLICY': trial.suggest_categorical('POLICY', ['adam', 'sgd']),
-            'BETA1': trial.suggest_float('BETA1', 0.8, 0.9, step=0.05),
-            'BETA2': trial.suggest_float('BETA2', 0.99, 0.999, step=0.003),
+            # 'POLICY': trial.suggest_categorical('POLICY', ['adam', 'sgd']),
+            # 'BETA1': trial.suggest_float('BETA1', 0.8, 0.9, step=0.05),
+            # 'BETA2': trial.suggest_float('BETA2', 0.99, 0.999, step=0.003),
 
-            'BRIGHTNESS': trial.suggest_float('BRIGHTNESS', 0.1, 0.5),
-            'CONTRAST': trial.suggest_float('CONTRAST', 0.1, 0.5),
-            'SATURATION': trial.suggest_float('SATURATION', 0.1, 0.5),
-            'NOISE_STD': trial.suggest_float('NOISE_STD', 0.01, 0.1),
+            # 'BRIGHTNESS': trial.suggest_float('BRIGHTNESS', 0.1, 0.5),
+            # 'CONTRAST': trial.suggest_float('CONTRAST', 0.1, 0.5),
+            # 'SATURATION': trial.suggest_float('SATURATION', 0.1, 0.5),
+            # 'NOISE_STD': trial.suggest_float('NOISE_STD', 0.01, 0.1),
 
-            'WEIGHT_DECAY': trial.suggest_float('WEIGHT_DECAY', 1e-6, 1e-3, log=True),
+            # 'WEIGHT_DECAY': trial.suggest_float('WEIGHT_DECAY', 1e-6, 1e-3, log=True),
 
-            'USE_SWIN_T_MULTI_STAGE': trial.suggest_categorical('USE_SWIN_T_MULTI_STAGE', [True, False]),
-            'SWIN_T_STAGES': trial.suggest_categorical('SWIN_T_STAGES', [[0,1,2,3],[1,2,3],[2,3],[3]]),
-            'USE_CROSS_VIEW_ATTENTION': trial.suggest_categorical('USE_CROSS_VIEW_ATTENTION', [True, False]),
+            # 'USE_SWIN_T_MULTI_STAGE': trial.suggest_categorical('USE_SWIN_T_MULTI_STAGE', [True, False]),
+            # 'SWIN_T_STAGES': trial.suggest_categorical('SWIN_T_STAGES', [[0,1,2,3],[1,2,3],[2,3],[3]]),
+            # 'USE_CROSS_VIEW_ATTENTION': trial.suggest_categorical('USE_CROSS_VIEW_ATTENTION', [True, False]),
 
-            'CROSS_ATT_REDUCTION_RATIO': trial.suggest_categorical('CROSS_ATT_REDUCTION_RATIO', [2,4,8]),
-            'ATT_SPATIAL_DOWNSAMPLE_RATIO': trial.suggest_categorical('ATT_SPATIAL_DOWNSAMPLE_RATIO', [2,4]),
-            'CROSS_ATT_NUM_HEADS': trial.suggest_categorical('CROSS_ATT_NUM_HEADS', [2,4,8]),
+            # 'CROSS_ATT_REDUCTION_RATIO': trial.suggest_categorical('CROSS_ATT_REDUCTION_RATIO', [2,4,8]),
+            # 'ATT_SPATIAL_DOWNSAMPLE_RATIO': trial.suggest_categorical('ATT_SPATIAL_DOWNSAMPLE_RATIO', [2,4]),
+            # 'CROSS_ATT_NUM_HEADS': trial.suggest_categorical('CROSS_ATT_NUM_HEADS', [2,4,8]),
         }
         ##############################################################################################
         ##############################################################################################
@@ -98,32 +98,32 @@ def optuna_tune(cfg):
         # Update trial config
         trial_cfg.CONST.BATCH_SIZE = config_params['BATCH_SIZE']
 
-        trial_cfg.TRAIN.ENCODER_LEARNING_RATE = config_params['ENCODER_LR']
-        trial_cfg.TRAIN.DECODER_LEARNING_RATE = config_params['DECODER_LR']
-        trial_cfg.TRAIN.MERGER_LEARNING_RATE = config_params['MERGER_LR']
-        trial_cfg.TRAIN.REFINER_LEARNING_RATE = config_params['REFINER_LR']
+        # trial_cfg.TRAIN.ENCODER_LEARNING_RATE = config_params['ENCODER_LR']
+        # trial_cfg.TRAIN.DECODER_LEARNING_RATE = config_params['DECODER_LR']
+        # trial_cfg.TRAIN.MERGER_LEARNING_RATE = config_params['MERGER_LR']
+        # trial_cfg.TRAIN.REFINER_LEARNING_RATE = config_params['REFINER_LR']
 
-        trial_cfg.TRAIN.GAMMA = config_params['GAMMA']
+        # trial_cfg.TRAIN.GAMMA = config_params['GAMMA']
 
-        # trial_cfg.NETWORK.USE_MERGER = config_params['USE_MERGER']
-        # trial_cfg.NETWORK.USE_REFINER = config_params['USE_REFINER']
+        # # trial_cfg.NETWORK.USE_MERGER = config_params['USE_MERGER']
+        # # trial_cfg.NETWORK.USE_REFINER = config_params['USE_REFINER']
 
-        trial_cfg.TRAIN.POLICY = config_params['POLICY']
-        trial_cfg.TRAIN.BETAS = (config_params['BETA1'], config_params['BETA2'])
+        # trial_cfg.TRAIN.POLICY = config_params['POLICY']
+        # trial_cfg.TRAIN.BETAS = (config_params['BETA1'], config_params['BETA2'])
 
-        trial_cfg.TRAIN.BRIGHTNESS = config_params['BRIGHTNESS']
-        trial_cfg.TRAIN.CONTRAST = config_params['CONTRAST']
-        trial_cfg.TRAIN.SATURATION = config_params['SATURATION']
-        trial_cfg.TRAIN.NOISE_STD = config_params['NOISE_STD']
+        # trial_cfg.TRAIN.BRIGHTNESS = config_params['BRIGHTNESS']
+        # trial_cfg.TRAIN.CONTRAST = config_params['CONTRAST']
+        # trial_cfg.TRAIN.SATURATION = config_params['SATURATION']
+        # trial_cfg.TRAIN.NOISE_STD = config_params['NOISE_STD']
 
-        trial_cfg.TRAIN.WEIGHT_DECAY = config_params['WEIGHT_DECAY']
+        # trial_cfg.TRAIN.WEIGHT_DECAY = config_params['WEIGHT_DECAY']
 
-        trial_cfg.NETWORK.USE_SWIN_T_MULTI_STAGE = config_params['USE_SWIN_T_MULTI_STAGE']
-        trial_cfg.NETWORK.SWIN_T_STAGES = config_params['SWIN_T_STAGES']
-        trial_cfg.NETWORK.USE_CROSS_VIEW_ATTENTION = config_params['USE_CROSS_VIEW_ATTENTION']
-        trial_cfg.NETWORK.CROSS_ATT_REDUCTION_RATIO = config_params['CROSS_ATT_REDUCTION_RATIO']
-        trial_cfg.NETWORK.ATT_SPATIAL_DOWNSAMPLE_RATIO = config_params['ATT_SPATIAL_DOWNSAMPLE_RATIO']
-        trial_cfg.NETWORK.CROSS_ATT_NUM_HEADS = config_params['CROSS_ATT_NUM_HEADS']
+        # trial_cfg.NETWORK.USE_SWIN_T_MULTI_STAGE = config_params['USE_SWIN_T_MULTI_STAGE']
+        # trial_cfg.NETWORK.SWIN_T_STAGES = config_params['SWIN_T_STAGES']
+        # trial_cfg.NETWORK.USE_CROSS_VIEW_ATTENTION = config_params['USE_CROSS_VIEW_ATTENTION']
+        # trial_cfg.NETWORK.CROSS_ATT_REDUCTION_RATIO = config_params['CROSS_ATT_REDUCTION_RATIO']
+        # trial_cfg.NETWORK.ATT_SPATIAL_DOWNSAMPLE_RATIO = config_params['ATT_SPATIAL_DOWNSAMPLE_RATIO']
+        # trial_cfg.NETWORK.CROSS_ATT_NUM_HEADS = config_params['CROSS_ATT_NUM_HEADS']
 
         ##############################################################################################
         ##############################################################################################
