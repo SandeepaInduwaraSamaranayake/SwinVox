@@ -27,7 +27,7 @@ We use the [ShapeNet](https://www.shapenet.org/) dataset in our experiments, whi
 
 The pretrained models on ShapeNet are available as follows:
 
-- [SwinVox-A](https://gateway.infinitescript.com/?fileName=Pix2Vox-A-ShapeNet.pth) (457.0 MB)
+- [SwinVox](https://drive.google.com/file/d/15Sim5vzxPPF4CKMvYpJYJwZd7XqwEdii/view?usp=sharing) (320.1 MB)
 
 ## Prerequisites
 
