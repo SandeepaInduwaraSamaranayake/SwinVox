@@ -12,9 +12,15 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.cfg = cfg
 
+        # spatially downsamples the 7x7 2D features from the Encoder to a 2x2 resolution
+        # preparing them for transformation into a small 3D cube.
         self.spatial_reduce = nn.AdaptiveAvgPool2d((2, 2))  # [256, 7, 7] -> [256, 2, 2]
 
-        # Layer Definition
+        # Layer Definition (3D Transposed Convolutions/deconvolutions)
+        # ConvTranspose3d : upsample the volumetric features, gradually increasing the spatial resolution of the 3D grid
+        # BatchNorm3d  : stabilize and accelerate training by normalizing the activations of previous layers
+        # ReLU : Activation function to introduce non-linearity, allowing the network to learn complex mappings
+        # Stride =2 : doubles the output spatial dimension
         self.layer1 = torch.nn.Sequential(
             torch.nn.ConvTranspose3d(256, 128, kernel_size=(6, 4, 4), stride=2, bias=cfg.NETWORK.TCONV_USE_BIAS, padding=(2, 1, 1)),
             torch.nn.BatchNorm3d(128),
@@ -44,15 +50,19 @@ class Decoder(nn.Module):
             batch_size, n_views, channels, height, width = image_features.shape
 
             # Reshape for batched processing: [batch_size * n_views, channels, height, width]
+            # Allows parallel processing of each view's features
             combined_features = image_features.view(batch_size * n_views, channels, height, width)
             #logging.info(f"[Decoder] Combined features shape: {combined_features.shape}")                           # e.g., [64*24, 256, 7, 7]
 
-            # Apply spatial reduction using AdaptiveAvgPool2d
+            # Apply spatial dimension reduction using AdaptiveAvgPool2d
             # [batch_size * n_views, 256, 7, 7] -> [batch_size * n_views, 256, 2, 2]
             gen_volume = self.spatial_reduce(combined_features)
             #logging.info(f"[Decoder] After spatial_reduce: {gen_volume.shape}")                                     # e.g., [64*24, 256, 2, 2]
 
-            # Replicate the 2D features along a new depth dimension to create a 2x2x2 cube
+            # Replicate the 2D features along a new depth dimension to create a 2x2x2 small initial cube
+            # .unsqueeze(2) adds a new dimension
+            # .expand(-1, -1, 2, -1, -1) replicates the existing data twice along this new dimension
+            # .contiguous() ensures the memory layout is correct for subsequent 3D operations
             # [batch_size * n_views, 256, 2, 2] -> [batch_size * n_views, 256, 2, 2, 2]
             gen_volume = gen_volume.unsqueeze(2).expand(-1, -1, 2, -1, -1).contiguous()
             # -1 in expand means "don't change this dimension's size", useful when batch_size*n_views is variable
@@ -69,11 +79,13 @@ class Decoder(nn.Module):
             gen_volume = self.layer4(gen_volume)                                                                     # [batch_size * n_views, 8, 32, 32, 32]
             #logging.info(f"[Decoder] After layer4: {gen_volume.shape}")
 
-            raw_feature = gen_volume
+            # raw_feature : This richer, multi-channel 3D feature map is often useful for subsequent module merger.
+            raw_feature = gen_volume                                                                                 # [batch_size * n_views, 8, 32, 32, 32]
+            # This 1-channel volume represents the raw logits for the occupancy of each voxel
             gen_volume = self.layer5(gen_volume)                                                                     # [batch_size * n_views, 1, 32, 32, 32]
             #logging.info(f"[Decoder] After layer5: {gen_volume.shape}")
 
-            # Concatenate raw_feature and gen_volume
+            # Concatenate raw_feature and gen_volume along channel dimension
             raw_feature = torch.cat((raw_feature, gen_volume), dim=1)                                                # [batch_size * n_views, 9, 32, 32, 32]
             #logging.info(f"[Decoder] After concatenation: {raw_feature.shape}")
 
