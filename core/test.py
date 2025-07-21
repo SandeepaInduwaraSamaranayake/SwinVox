@@ -31,17 +31,20 @@ def test_net(cfg,
              refiner=None,
              merger=None):
     # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use
+    # for the hardware to speedup the training.
     torch.backends.cudnn.benchmark = True
 
-    # Load taxonomies of dataset
+    # Load taxonomies (categories) of dataset
     taxonomies = []
     with open(cfg.DATASETS[cfg.DATASET.TEST_DATASET.upper()].TAXONOMY_FILE_PATH, encoding='utf-8') as file:
         taxonomies = json.loads(file.read())
     taxonomies = {t['taxonomy_id']: t for t in taxonomies}
 
-    # Set up data loader
+    # Set up data loader if it wasn't already provided
     if test_data_loader is None:
         # Set up data augmentation
+        # Deterministic transforms (CenterCrop, Normalize) and shuffle=False to ensure 
+        # consistent and reproducible evaluation results.
         IMG_SIZE = cfg.CONST.IMG_H, cfg.CONST.IMG_W
         CROP_SIZE = cfg.CONST.CROP_IMG_H, cfg.CONST.CROP_IMG_W
         test_transforms = utils.data_transforms.Compose([
@@ -59,7 +62,7 @@ def test_net(cfg,
                                                        pin_memory=True,
                                                        shuffle=False)
 
-    # Set up networks
+    # Set up networks (Instantiate core network modules if not passed)
     if decoder is None or encoder is None:
         encoder = Encoder(cfg)
         decoder = Decoder(cfg)
@@ -72,6 +75,8 @@ def test_net(cfg,
             refiner = torch.nn.DataParallel(refiner).cuda()
             merger = torch.nn.DataParallel(merger).cuda()
 
+        # Load state dictionaries from a saved checkpoint.
+        # Allows evaluating pre-trained models.
         logging.info(f'Loading weights from {cfg.CONST.WEIGHTS} ...')
         checkpoint = torch.load(cfg.CONST.WEIGHTS)
         epoch_idx = checkpoint['epoch_idx']
@@ -103,8 +108,11 @@ def test_net(cfg,
         taxonomy_id = taxonomy_id[0] if isinstance(taxonomy_id[0], str) else taxonomy_id[0].item()
         sample_name = sample_name[0]
 
+        # with torch.no_grad() context manager disables gradient computation, 
+        # which saves memory and speeds up inference, as don't need to 
+        # compute gradients during evaluation.
         with torch.no_grad():
-            # Get data from data loader
+            # Get data from data loader and move to GPU
             rendering_images = utils.helpers.var_or_cuda(rendering_images)
             ground_truth_volume = utils.helpers.var_or_cuda(ground_truth_volume)
 
@@ -129,12 +137,14 @@ def test_net(cfg,
             refiner_losses.update(refiner_loss.item())
 
             # Apply sigmoid to generated_volume BEFORE calculating IoU and F-score
+            # sigmoid activation function to convert these logits into probabilities between 0 and 1
             generated_volume_prob = torch.sigmoid(generated_volume)
 
             # IoU and F-score per sample
             sample_iou = []
             sample_fscore = []
             for th in cfg.TEST.VOXEL_THRESH:
+                # binarize the generated_volume_prob
                 _volume = torch.ge(generated_volume_prob, th).float()
                 # Calculate IoU
                 intersection = torch.sum(_volume.mul(ground_truth_volume)).float()
@@ -208,7 +218,11 @@ def test_net(cfg,
         print(f'{taxonomies[taxonomy_id]["taxonomy_name"].ljust(8)}', end='\t')
         print(f'{test_iou[taxonomy_id]["n_samples"]}', end='\t')
         if 'baseline' in taxonomies[taxonomy_id]:
-            print(f'{taxonomies[taxonomy_id]["baseline"][f"{cfg.CONST.N_VIEWS_RENDERING}-view"]:.4f}', end='\t\t')
+            baseline_key = f"{cfg.CONST.N_VIEWS_RENDERING}-view"
+            if baseline_key in taxonomies[taxonomy_id]["baseline"]:
+              print(f'{taxonomies[taxonomy_id]["baseline"][baseline_key]:.4f}', end='\t\t')
+            else:
+              print('N/a', end='\t\t')
         else:
             print('N/a', end='\t\t')
 
