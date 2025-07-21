@@ -26,15 +26,19 @@ from models.refiner import Refiner
 from models.merger import Merger
 from utils.average_meter import AverageMeter
 
-# Import for Automatic Mixed Precision
+# Import for Automatic Mixed Precision (AMP)
+# Use both FP16 (half-precision) and FP32 (full-precision) floating-point types.
+# FP16 operations are faster and use less memory on compatible hardware(NVIDIA Tensor Cores).
 from torch.amp import autocast, GradScaler
 
 
 def train_net(cfg):
-    # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use
+    # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use 
+    # for the hardware to speedup the training.
     torch.backends.cudnn.benchmark = True
 
-    # Set up data augmentation
+    # Set up data augmentation to helps the model generalize better to unseen 
+    # data and prevents overfitting.
     IMG_SIZE = cfg.CONST.IMG_H, cfg.CONST.IMG_W
     CROP_SIZE = cfg.CONST.CROP_IMG_H, cfg.CONST.CROP_IMG_W
     train_transforms = utils.data_transforms.Compose([
@@ -54,7 +58,7 @@ def train_net(cfg):
         utils.data_transforms.ToTensor(),
     ])
 
-    # Set up data loader
+    # Set up data loader to fetch batches of images and their corresponding ground-truth volumes.
     train_dataset_loader = utils.data_loaders.DATASET_LOADER_MAPPING[cfg.DATASET.TRAIN_DATASET](cfg)
     val_dataset_loader = utils.data_loaders.DATASET_LOADER_MAPPING[cfg.DATASET.TEST_DATASET](cfg)
     train_data_loader = torch.utils.data.DataLoader(dataset=train_dataset_loader.get_dataset(
@@ -71,23 +75,26 @@ def train_net(cfg):
                                                   pin_memory=True,
                                                   shuffle=False)
 
-    # Set up networks
+    # Set up networks (Instantiate core network modules)
     encoder = Encoder(cfg)
     decoder = Decoder(cfg)
     refiner = Refiner(cfg)
     merger = Merger(cfg)
+    # log parameter count
     logging.info(f'Parameters in Encoder: {utils.helpers.count_parameters(encoder)}.')
     logging.info(f'Parameters in Decoder: {utils.helpers.count_parameters(decoder)}.')
     logging.info(f'Parameters in Refiner: {utils.helpers.count_parameters(refiner)}.')
     logging.info(f'Parameters in Merger: {utils.helpers.count_parameters(merger)}.')
 
-    # Initialize weights of networks
+    # Initialize weights of networks to ensure that the network weights start 
+    # from a reasonable distribution. CriticaL for model stability.
     encoder.apply(utils.helpers.init_weights)
     decoder.apply(utils.helpers.init_weights)
     refiner.apply(utils.helpers.init_weights)
     merger.apply(utils.helpers.init_weights)
 
-    # Set up solver
+    # Set up solver (Optimizer) depending on the config that adjust the model's 
+    # weights during training to minimize the loss function.
     if cfg.TRAIN.POLICY == 'adam':
         encoder_solver = torch.optim.Adam(filter(lambda p: p.requires_grad, encoder.parameters()),
                                           lr=cfg.TRAIN.ENCODER_LEARNING_RATE,
@@ -125,7 +132,9 @@ def train_net(cfg):
     else:
         raise Exception('[FATAL] %s Unknown optimizer %s.' % (dt.now(), cfg.TRAIN.POLICY))
 
-    # Set up learning rate scheduler to decay learning rates dynamically
+    # Set up learning rate scheduler to decay learning rates dynamically.
+    # MultiStepLR reduces the learning rate at predefined milestones (epochs), which 
+    # helps the model converge more effectively in later stages of training.
     encoder_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(encoder_solver,
                                                                milestones=cfg.TRAIN.ENCODER_LR_MILESTONES,
                                                                gamma=cfg.TRAIN.GAMMA)
@@ -142,7 +151,8 @@ def train_net(cfg):
     # Initialize GradScaler for mixed precision training
     scaler = GradScaler(init_scale=2**16)
 
-    # Move models to CUDA if available
+    # Move models to GPU (CUDA) if available and 
+    # distribute the computation across multiple GPUs
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if device.type == 'cuda':
         encoder = torch.nn.DataParallel(encoder).to(device)
@@ -150,10 +160,12 @@ def train_net(cfg):
         refiner = torch.nn.DataParallel(refiner).to(device)
         merger  = torch.nn.DataParallel(merger).to(device)
 
-    # Set up loss functions
+    # Set up loss functions (Binary Cross-Entropy with Logits Loss)
+    # BCEWithLogitsLoss is suitable for binary classification tasks
     bce_loss = torch.nn.BCEWithLogitsLoss()
 
-    # Load pretrained model if exists
+    # Load pretrained model if exists (Resume training by loading 
+    # previous weight's state dictionaries). 
     init_epoch = 0
     best_iou = -1
     best_epoch = -1
@@ -175,7 +187,7 @@ def train_net(cfg):
 
         logging.info(f'Recover complete. Current epoch #{init_epoch}, Best IoU = {best_iou:.4f} at epoch #{best_epoch}.')
 
-    # Summary writer for TensorBoard
+    # Summary writer for TensorBoard to monitor training progress using metrics like loss and IoU.
     output_dir = os.path.join(cfg.DIR.OUT_PATH, dt.now().isoformat())
     cfg.DIR.LOGS = os.path.join(output_dir, 'logs')
     cfg.DIR.CHECKPOINTS = os.path.join(output_dir, 'checkpoints')
@@ -206,7 +218,7 @@ def train_net(cfg):
             # Measure data time
             data_time.update(time() - batch_end_time)
 
-            # Get data from data loader
+            # Get data from data loader and move to GPU
             rendering_images = utils.helpers.var_or_cuda(rendering_images)
             ground_truth_volumes = utils.helpers.var_or_cuda(ground_truth_volumes)
 
@@ -218,21 +230,28 @@ def train_net(cfg):
             assert rendering_images.device == ground_truth_volumes.device == next(encoder.parameters()).device, \
                 "Device mismatch between data and model"
 
+            # FORWARD PASS: Feed input data to model and compute output
             # Wrap forward pass in autocast context manager
             with autocast(device_type=device.type, enabled=True):
                 # Train the encoder, decoder, refiner, and merger
+                # 2D input images are fed into the Encoder, which extracts powerful 2D features
                 image_features = encoder(rendering_images)
+                # Takes 2D features and 'lifts' them into an initial coarse 3D voxel volume and additional raw 3D features
                 raw_features, generated_volumes = decoder(image_features)
 
+                # Intelligently combines these individual view predictions into a single, unified volume
                 if cfg.NETWORK.USE_MERGER and epoch_idx >= cfg.TRAIN.EPOCH_START_USE_MERGER:
                     generated_volumes = merger(raw_features, generated_volumes)
                 else:
                     generated_volumes = torch.mean(generated_volumes, dim=1)
 
+                # calculate the loss for this generated_volume against the ground_truth_volumes
                 encoder_loss = bce_loss(generated_volumes, ground_truth_volumes)
 
+                # Refines generated_volumes by adding finer details
                 if cfg.NETWORK.USE_REFINER and epoch_idx >= cfg.TRAIN.EPOCH_START_USE_REFINER:
                     generated_volumes = refiner(generated_volumes)
+                    # Separate loss is calculated for the Refiner's output
                     refiner_loss = bce_loss(generated_volumes, ground_truth_volumes)
                 else:
                     refiner_loss = encoder_loss
@@ -241,34 +260,40 @@ def train_net(cfg):
                 total_loss = encoder_loss + (refiner_loss if cfg.NETWORK.USE_REFINER and 
                                              epoch_idx >= cfg.TRAIN.EPOCH_START_USE_REFINER else 0)
 
-            # Gradient descent
+            # BACKWARD PASS (BACKPROPOGATION): calculates the gradients of the loss function                                  
+            # Gradient descent ( clear old gradients before calculating new ones)
             encoder.zero_grad()
             decoder.zero_grad()
             refiner.zero_grad()
             merger.zero_grad()
 
-            # Single backward pass
+            # Single backward pass.
+            # scaler.scale() adjusts the loss to prevent underflow issues with FP16 (e.g. NaN)
             scaler.scale(total_loss).backward()
 
             # Unscale gradients for clipping
+            # Before applying gradient clipping, gradients are unscaled back to their original magnitude
             scaler.unscale_(encoder_solver)
             scaler.unscale_(decoder_solver)
             scaler.unscale_(refiner_solver)
             scaler.unscale_(merger_solver)
 
-            # Clip gradients to prevent explosion
+            # Clip gradients to prevent gradient explosion and stabalize training
             torch.nn.utils.clip_grad_norm_(encoder.parameters(), max_norm=1.0)
             torch.nn.utils.clip_grad_norm_(decoder.parameters(), max_norm=1.0)
             torch.nn.utils.clip_grad_norm_(refiner.parameters(), max_norm=1.0)
             torch.nn.utils.clip_grad_norm_(merger.parameters(), max_norm=1.0)
 
             # Optimizer steps
+            # updates the network weights using the calculated gradients
+            # scaler.step() intelligently handles the unscaling and updating process for mixed precision
             scaler.step(encoder_solver)
             scaler.step(decoder_solver)
             if cfg.NETWORK.USE_REFINER and epoch_idx >= cfg.TRAIN.EPOCH_START_USE_REFINER:
                 scaler.step(refiner_solver)
             if cfg.NETWORK.USE_MERGER and epoch_idx >= cfg.TRAIN.EPOCH_START_USE_MERGER:
                 scaler.step(merger_solver)
+            # adjusts the scaling factor for the next iteration based on whether gradients overflowed
             scaler.update()
 
             # Append loss to average metrics
@@ -289,6 +314,7 @@ def train_net(cfg):
                 f'EDLoss = {encoder_loss.item():.4f} RLoss = {refiner_loss.item():.4f}')
 
         # Adjust learning rate
+        # This triggers the learning rate decay according to the predefined milestones
         encoder_lr_scheduler.step()
         decoder_lr_scheduler.step()
         refiner_lr_scheduler.step()
@@ -304,7 +330,8 @@ def train_net(cfg):
                 f'[Epoch {epoch_idx + 1}/{cfg.TRAIN.NUM_EPOCHS}] EpochTime = {epoch_end_time - epoch_start_time:.3f} (s) '
                 f'EDLoss = {encoder_losses.avg:.4f} RLoss = {refiner_losses.avg:.4f}')
 
-        # Update Rendering Views
+        # Update Number of Rendering Views
+        # adds variability to the training data
         if cfg.TRAIN.UPDATE_N_VIEWS_RENDERING:
             n_views_rendering = random.randint(1, cfg.CONST.N_VIEWS_RENDERING)
             train_data_loader.dataset.set_n_views_rendering(n_views_rendering)
@@ -315,6 +342,8 @@ def train_net(cfg):
         iou = test_net(cfg, epoch_idx + 1, output_dir, val_data_loader, val_writer, encoder, decoder, refiner, merger)
 
         # Save weights to file
+        # Save Checkpoints either at a fixed frequency (SAVE_FREQ) or
+        # If the current IoU > previous IoU, Save weight as 'best.pth'
         if (epoch_idx + 1) % cfg.TRAIN.SAVE_FREQ == 0 or iou > best_iou:
             file_name = f'checkpoint-epoch-{epoch_idx + 1:03d}.pth'
             if iou > best_iou:
